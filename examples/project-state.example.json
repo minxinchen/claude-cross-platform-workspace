@@ -1,0 +1,17 @@
+{
+  "project": {
+    "current_stage": "major phases complete; next UI work package pending approval",
+    "site_work_progress": 100,
+    "completed_phase_tasks": 19,
+    "in_progress_phase_tasks": 0,
+    "total_phase_tasks": 19,
+    "current_task": null,
+    "next_task": {
+      "id": "S-01",
+      "title": "UI work package",
+      "status": "not_started",
+      "acceptance": "HTML prototype must be approved before WordPress modification; rollback required."
+    }
+  },
+  "principle": "The dashboard reads project state. The agent does not rely on conversational memory for project truth."
+}
