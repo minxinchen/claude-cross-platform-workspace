@@ -1,0 +1,24 @@
+{
+  "authority": {
+    "classification": "owner_confirmed_engineering_data",
+    "rule": "Owner-confirmed fields override older public pages and generated content when they conflict.",
+    "publication_policy": "Only confirmed fields may become public claims. Pending fields must not be invented."
+  },
+  "measurement_policy": {
+    "flow_unit": "SLPM",
+    "pressure_unit": "BARG"
+  },
+  "products": {
+    "product_a": {
+      "status": "active_confirmed",
+      "confirmed": {
+        "pressure_range": "REDACTED_EXAMPLE",
+        "control_signals": ["RS485 Modbus RTU", "0-10 V", "4-20 mA"]
+      },
+      "pending": [
+        "commercial pricing",
+        "unpublished engineering detail"
+      ]
+    }
+  }
+}
