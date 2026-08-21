@@ -20,17 +20,17 @@
 
 ![GSC 搜尋結果摘要](assets/gsc-summary.svg)
 
-GSC 前後期不是 controlled experiment，因此搜尋成長只能視為**修改後觀察到的外部趨勢**，不能直接歸因到某一個 SEO / AIO 動作。CTR 也從 1.9% 降到 1.6%，平均排名從 6.3 變成 8.8，這些不利結果同樣保留分析。
+GSC 前後期不是對照實驗，因此搜尋成長只能視為**修改後觀察到的外部趨勢**，不能直接歸因到某一個 SEO / AIO 動作。CTR 也從 1.9% 降到 1.6%，平均排名從 6.3 變成 8.8，這些不利結果同樣保留分析。
 
 → [完整結果與限制](docs/results.md)
 
 ## 材料與方法
 
-資料來源包含 WordPress 公開頁面、三語內容、產品工程規格、HTML / PDF / images、Google Search Console、Google Rich Results Test、Lighthouse、anonymous public output 與工作 logs。
+資料來源包含 WordPress 公開頁面、三語內容、產品工程規格、HTML / PDF / images、Google Search Console、Google Rich Results Test、Lighthouse、匿名公開頁面與工作紀錄。
 
 ```mermaid
 flowchart LR
-    A[建立 baseline] --> B[找高影響問題]
+    A[建立基準狀態] --> B[找高影響問題]
     B --> C[提出可能原因]
     C --> D[修改或隔離實驗]
     D --> E[公開環境驗證]
@@ -44,31 +44,31 @@ flowchart LR
 
 ### 1. 手機首頁約 13 秒
 
-首頁使用 Smart Slider 3。我先建立隔離測試頁，只替換第一屏 slider，其餘內容盡量保持可比較。Mobile LCP 從 **13.10s → 3.16s**，因此修改方向從「可能換 hosting」轉成「先重做首屏結構」。正式上線後約 **2.72s**。
+首頁使用 Smart Slider 3。我先建立隔離測試頁，只替換第一屏 slider，其餘內容盡量保持可比較。Mobile LCP 從 **13.10s → 3.16s**，因此修改方向從「可能換主機」轉成「先重做首屏結構」。正式上線後約 **2.72s**。
 
 → [完整案例](performance/isolated-first-screen-test.md)
 
 ### 2. 有三語 URL，不代表三語內容真的完成
 
-早期驗收已通過 URL、H1、hreflang 等項目，但後來發現只有繁中存在完整 pillar content。問題在於原本的 validation metric 把「page exists」當成「content equivalent」。後續改成逐語言檢查 anonymous rendered DOM、FAQ、CTA、links 與 desktop/mobile output。
+早期驗收已通過 URL、H1、hreflang 等項目，但後來發現只有繁中存在完整 pillar content。問題在於原本的驗收指標把「頁面存在」當成「內容等價」。後續改成逐語言檢查匿名公開 DOM、FAQ、CTA、連結與桌機 / 手機結果。
 
 → [完整案例](incidents/multilingual-false-pass.md)
 
 ### 3. 產品正文更新了，FAQ / JSON-LD 還是舊資料
 
-產品工程規格更新後，正文已是新值，但較早建立的 FAQ / JSON-LD 仍保留舊值。解法是建立 owner-confirmed truth source，並將正文、FAQ、structured data、knowledge JSON 與三語頁一起做 consistency verification。
+產品工程規格更新後，正文已是新值，但較早建立的 FAQ / JSON-LD 仍保留舊值。解法是建立業主確認的最高資料來源，並將正文、FAQ、結構化資料、product knowledge JSON 與三語頁一起做一致性驗證。
 
 → [完整案例](incidents/product-truth-drift.md)
 
 ### 4. 本地 QA 正常，不代表 Google 看到的舊網址也正常
 
-GSC Page Indexing 顯示 32 個 redirected URLs，其中 **14 個 legacy paths** 有明確新頁面，卻錯誤導向語言首頁。後續改成 relevant single-hop redirects，也把 GSC 從成果 dashboard 變成外部驗證資料。
+GSC Page Indexing 顯示 32 個 redirected URLs，其中 **14 個舊網址**有明確新頁面，卻錯誤導向語言首頁。後續改成對應正確頁面的單次轉址，也把 GSC 從成果報表變成外部驗證資料。
 
 → [完整案例](search/search-console-redirect-review.md)
 
 ### 5. Structured Data 不是加越多越好
 
-專案曾嘗試 Product / ProductModel，但公開頁沒有 verified Offer、price、inventory、review、rating。我的決策是不補假資料，而是移除不適合正式環境的 Product / ProductModel rich-result implementation，保留能由公開內容支持的 Article、Breadcrumb、Organization 與 visible product content。
+專案曾嘗試 Product / ProductModel，但公開頁沒有 verified Offer、price、inventory、review、rating。我的決策是不補假資料，而是移除不適合正式環境的 Product / ProductModel rich-result implementation，保留能由公開內容支持的 Article、Breadcrumb、Organization 與頁面可見產品內容。
 
 → [AIO 與 Structured Data](docs/aio-governance.md)
 
@@ -82,7 +82,7 @@ flowchart LR
     B[產品資訊進 HTML] --> G
     C[canonical / hreflang] --> G
     D[FAQ / pillar / internal links] --> G
-    E[truth source] --> G
+    E[業主確認資料來源] --> G
     F[Schema.org / JSON-LD] --> G
     G --> H[GSC / Rich Results / AI 摘要持續觀察]
 ```
@@ -91,9 +91,9 @@ flowchart LR
 
 ## AI Agent 在哪裡
 
-AI Agent 用來做大量掃描、三語比較、HTML / script 候選版本、驗證腳本與 log 整理；人負責目標、資料真實性、實驗設計、是否上線與結果解讀。
+AI Agent 用來做大量掃描、三語比較、HTML / script 候選版本、驗證腳本與工作紀錄整理；人負責目標、資料真實性、實驗設計、是否上線與結果解讀。
 
-Agent 也曾犯錯，例如把單一語言成功外推成三語完成，或正文更新後留下 stale FAQ / JSON-LD。這些錯誤後來被轉成新的 validation rules，而不是從專案歷史裡刪掉。
+Agent 也曾犯錯，例如把單一語言成功外推成三語完成，或正文更新後留下舊版 FAQ / JSON-LD。這些錯誤後來被轉成新的驗證規則，而不是從專案歷史裡刪掉。
 
 → [Human-AI workflow](docs/human-ai-workflow.md)  
 → [代表性問題紀錄](docs/incidents.md)
@@ -104,15 +104,15 @@ Agent 也曾犯錯，例如把單一語言成功外推成三語完成，或正�
 - **116 / 116** desktop/mobile 三語視覺案例通過
 - **170** 個站內連結無錯誤
 - **92** 張圖片無 broken resource
-- **14** 個錯誤 legacy redirects 已修正
+- **14** 個錯誤舊網址轉址已修正
 
 這些數字代表上線完整度與技術準備度，不等於搜尋排名或 AI 引用的因果證明。
 
 ## 限制與下一步
 
-下一輪最值得做的不是再增加 checklist，而是取得 GSC 搜尋詞與頁面層級資料，回答：新增曝光來自品牌詞、產品詞、技術長尾詞，還是新三語頁面？原有高排名搜尋詞是否真的下降？AI 摘要曝光又集中在哪些搜尋詞與頁面？
+下一輪最值得做的不是再增加檢查表，而是取得 GSC 搜尋詞與頁面層級資料，回答：新增曝光來自品牌詞、產品詞、技術長尾詞，還是新三語頁面？原有高排名搜尋詞是否真的下降？AI 摘要曝光又集中在哪些搜尋詞與頁面？
 
-另外，「挑一個產品作 AIO experiment group」目前仍是未執行假設，不列入成果。
+另外，「挑一個產品作 AIO 實驗組」目前仍是未執行假設，不列入成果。
 
 → [完整結果與限制](docs/results.md)  
 → [未執行的 AIO 實驗假設](hypotheses/single-product-aio-experiment.md)
