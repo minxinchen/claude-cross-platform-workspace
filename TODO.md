@@ -13,21 +13,21 @@
 
 ## P1｜讓招聘者 60–90 秒看懂
 
-- [ ] 縮短 README，將細節下沉到 docs
-- [ ] README 首屏固定只回答四件事：目標、我的角色、代表結果、技術棧
-- [ ] 用 Mermaid 加入一張「材料與方法」流程圖
-- [ ] 用 Mermaid 加入一張「問題 → 證據 → 決策 → 結果」案例圖
-- [ ] 將 5 個主要問題改成短摘要卡式段落，詳細內容連到 incident / performance 文件
-- [ ] 新增一份獨立的 `docs/methods.md`，整理材料、資料來源、方法與驗證方式
+- [x] 縮短 README，將方法與結果細節下沉到 docs
+- [ ] README 首屏再壓縮成四件事：目標、我的角色、代表結果、技術棧
+- [x] 用 Mermaid 加入「材料與方法」流程圖
+- [x] 用 Mermaid 加入「問題 → 證據 → 決策 → 結果」案例圖
+- [x] 5 個主要問題保留短摘要，詳細內容連到 case / incident 文件
+- [x] 新增 `docs/methods.md`，整理材料、資料來源、方法與驗證方式
 
 ## P1｜結果與證據
 
 - [x] 新增 `docs/results.md`
 - [x] 區分可直接歸因的技術結果、修改後外部趨勢、未驗證假設
-- [ ] 將兩張去識別化 GSC 截圖放入 `assets/`，README / results 直接引用
-- [ ] 補一張首頁效能 13.10s → 3.16s → 2.72s 的簡潔視覺
-- [ ] 檢查所有百分比、日期、樣本期間與文字是否一致
-- [ ] 將 GSC 結果標註為 observation，不宣稱單一 SEO / AIO 修改造成因果結果
+- [x] 不直接公開原始 GSC screenshot，改做去識別化 `assets/gsc-summary.svg`
+- [x] 新增 `assets/performance-summary.svg`，呈現 13.10s → 3.16s → 2.72s
+- [x] 檢查 GSC 百分比、日期、樣本期間與文字是否一致
+- [x] 將 GSC 結果標註為 observation，不宣稱單一 SEO / AIO 修改造成因果結果
 
 ## P1｜代表性問題案例
 
@@ -36,36 +36,47 @@
 - [x] 產品資料：正文更新但 FAQ / JSON-LD 殘留舊值
 - [x] GSC：14 個 legacy redirects 錯誤導向首頁
 - [x] Structured Data：不為 Rich Results 捏造 Offer / price / review / rating
-- [ ] 將每個案例統一成：問題 → 材料/證據 → 方法 → 解法 → 結果 → 限制
-- [ ] 刪除過度像研究筆記的 `phenotype / modifier / high-information evidence` 公開用語，保留概念但換成人話
+- [x] 首頁效能案例統一成：問題 → 材料與證據 → 方法 → 解法 → 結果 → 限制
+- [x] 三語案例統一成：問題 → 材料與證據 → 方法 → 解法 → 結果 → 限制
+- [x] 產品資料案例統一成：問題 → 材料與證據 → 方法 → 解法 → 結果 → 限制
+- [x] GSC redirect 案例統一成：問題 → 材料與證據 → 方法 → 解法 → 結果 → 限制
+- [x] 公開敘事移除 `phenotype / modifier / high-information evidence` 等研究筆記式用語
 
 ## P2｜AIO 專題
 
 - [x] 說明 Schema.org / JSON-LD 的作用與限制
-- [x] 區分 production-safe policy 與未執行的單產品 AIO hypothesis
-- [ ] 將 AIO 工作重新整理成「讓搜尋引擎與 AI 少猜」的具體工作項目
-- [ ] 補上 H1、HTML 產品資訊、canonical / hreflang、FAQ / pillar、truth source、GSC 的關係圖
+- [x] 區分正式環境保守策略與未執行的單產品 AIO hypothesis
+- [x] 將 AIO 工作整理成「讓搜尋引擎與 AI 少猜」的具體工作項目
+- [x] 新增 H1、HTML 產品資訊、canonical / hreflang、FAQ / pillar、truth source、Schema、GSC 關係圖
 - [ ] 未來若執行單產品 AIO experiment，先定義 baseline、control、observation window、success metric
 
 ## P2｜Agent / Log
 
 - [x] 保留 representative logs，不公開原始客戶 workspace
 - [x] 建立 evidence map 概念
-- [ ] 把 Agent / log 內容移到 README 後半或 docs，不與 SEO/AIO 目標搶主線
-- [ ] 代表性 log 只保留真正改變決策的案例
-- [ ] 檢查 evidence map 路徑是否全部能指到真實檔案
+- [x] 把 Agent / log 內容移到 README 後半與 docs，不與 SEO/AIO 目標搶主線
+- [x] 代表性 log 只保留真正改變決策的案例
+- [x] 檢查 evidence map 內的 representative log 路徑均對應真實檔案
 
 ## P2｜公開安全與一致性
 
-- [ ] 全 repo 搜尋客戶名稱、網址、聯絡資訊、內部 WordPress ID、私人路徑
-- [ ] 全 repo 搜尋過度誇大的字眼：`production-grade`、`guarantee`、`AIO ranking improvement` 等
-- [ ] 檢查所有 README links 是否可用
-- [ ] 檢查中英文用語一致性與檔名可讀性
+- [x] 搜尋客戶名稱與網域，公開 repo 無命中
+- [x] 搜尋已知私人工作路徑與內部 WordPress ID，公開 repo 無命中
+- [x] 搜尋 `production-grade`、`guarantee` 等過度誇大用語，公開 repo 無命中
+- [x] README 主要連結均對應現有檔案
+- [ ] 再做一輪中英文用語精簡，避免非必要英文太多
+
+## P3｜最後整理
+
+- [ ] 把 README 再縮短 15–25%，讓第一屏更像 portfolio landing page
+- [ ] 檢查 SVG / Mermaid 在 GitHub 實際渲染是否正常
+- [ ] 整理 commit history，確認沒有公開前期不適合的描述或敏感內容
+- [ ] 決定是否保留 `examples/` 裡較工程化的 Agent evidence map 作為附錄
 
 ## 受限事項
 
-- [ ] Repo 名稱目前仍是 `claude-cross-platform-workspace`，與內容不符；若連接器無 rename repository 權限，需要手動改名。建議名稱：`seo-aio-b2b-case-study` 或 `evidence-driven-seo-aio-case-study`。
-- [ ] GSC query/page-level 深度分析需要更細的匯出資料，目前只有總覽與 AI 摘要比較資料。
+- [ ] Repo 名稱目前仍是 `claude-cross-platform-workspace`，與內容不符。現有連接器沒有 rename repository action，需要手動改名。建議：`seo-aio-b2b-case-study`。
+- [ ] GSC 搜尋詞 / 頁面層級深度分析需要更細的匯出資料，目前只有總覽與 AI 摘要比較資料。
 
 ## 完成定義
 
