@@ -1,30 +1,33 @@
-# Representative Log: Experiment State Is Not Production State
+# 代表性 Log：實驗狀態不等於 Production 狀態
 
-## Problem
+## 問題
 
-The project contained a lightweight scroll-reveal experiment. A future Agent reading the repository could easily misremember "this experiment exists" as "this feature shipped to production."
+專案裡曾經做過 lightweight scroll-reveal experiment。幾週或幾個月後，如果只看到檔案、screenshots 或 test page，很容易把「這個實驗存在」誤記成「這個功能曾經正式上線」。
 
-## High-information evidence
+## 關鍵證據
 
-At the recorded checkpoint:
+在當時的 checkpoint：
 
-- the experimental page was publicly reachable but marked `noindex`;
-- the heavy slider runtime was absent from the test page;
-- the test marker existed on the experiment;
-- the production homepage did **not** contain the test marker or test-page references.
+- experimental page 可公開存取，但有 `noindex`
+- test page 沒有 heavy slider runtime
+- test marker 存在於 experiment
+- production homepage **沒有** test marker
+- production homepage 也沒有 test-page references
 
-## Overlooked variable
+## 原本忽略的地方
 
-**Repository presence is not release status.**
+**Repository 裡存在，不等於 production 曾經使用。**
 
-A file, screenshot, test page or prototype can be real project history without ever becoming part of production.
+prototype、test page、screenshot 與正式上線紀錄都是真實專案歷史，但它們代表不同狀態。
 
-## Human / workflow decision
+## 決策改變
 
-- Record experiment state separately from production state.
-- Require explicit release evidence before describing a prototype as shipped.
-- Keep experiment URLs isolated and prevent them from silently entering navigation or search indexing.
+- experiment state 與 production state 分開記錄
+- 沒有 explicit release evidence，就不能把 prototype 寫成 shipped feature
+- test URL 保持 isolated，避免進入 navigation 或 search indexing
 
-## Why this log is representative
+## 為什麼這份 Log 重要
 
-This evidence is useful because it proves a negative: the experiment was not production at that checkpoint. That protects later summaries from turning project history into a false achievement claim.
+它的價值在於可以證明一件「沒有發生的事」：在該 checkpoint，scroll-reveal experiment 還不是 production homepage 的功能。
+
+這能避免後續 Agent 在摘要歷史時，把「做過測試」加工成不存在的正式成果。
