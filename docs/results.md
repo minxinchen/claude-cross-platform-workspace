@@ -31,10 +31,10 @@
 
 至少有兩種可能：
 
-1. 原本的 query 排名真的變差；
-2. 網站開始在更多新 query / 新頁面取得曝光，而這些新增曝光一開始位於較低順位，因而把 CTR 與平均排名拉低。
+1. 原本的搜尋詞排名真的變差；
+2. 網站開始在更多新搜尋詞或新頁面取得曝光，而這些新增曝光一開始位於較低順位，因此把 CTR 與平均排名拉低。
 
-目前只有總覽資料，無法判斷哪一個解釋較強。下一步應拆成 query-level 與 page-level comparison。
+目前只有總覽資料，無法判斷哪一個解釋較強。下一步應拆成**搜尋詞層級**與**頁面層級**比較。
 
 ---
 
@@ -56,62 +56,62 @@ AI 摘要曝光占整體 GSC 曝光的比例約為：
 
 > **AI 摘要曝光增加，但它大致隨整體搜尋曝光一起成長，目前沒有證據顯示 AI 摘要占比本身顯著提高。**
 
-這代表 AIO 至少可以開始被當成可觀察結果，而不是只停在技術設定；但現在仍不能把 AI 摘要成長直接歸因到特定 Schema、FAQ、H1 或其他單一修改。
+這代表 AIO 至少可以開始用外部數據觀察，而不是只停在技術設定；但現在仍不能把 AI 摘要成長直接歸因到特定 Schema、FAQ、H1 或其他單一修改。
 
 ---
 
-## 3. Technical Results
+## 3. 技術結果
 
-除了搜尋結果，專案還有一組比較能直接對應修改的 technical results：
+除了搜尋結果，專案還有一組比較能直接對應修改的技術結果。
 
 ### 首頁效能
 
-- Mobile LCP：**13.10s → 3.16s isolated test → 2.72s production**
+- Mobile LCP：**13.10s → 3.16s 隔離測試 → 2.72s 正式上線**
 - Lighthouse Mobile Performance：約 **73 → 96**
 - Desktop Performance：100
-- Production desktop LCP：約 0.538s
+- 正式首頁 desktop LCP：約 0.538s
 
 這組結果的因果判斷比 GSC 更強，因為中間做過隔離測試，只替換第一屏 Smart Slider 3，其他內容盡量維持可比較。
 
 ### 全站驗收
 
 - 122 / 122 sitemap URLs 通過公開檢查
-- 116 / 116 desktop/mobile multilingual visual cases 通過
-- 170 internal links 無錯誤
-- 92 images 無 broken resource
-- 14 個錯誤 legacy redirects 修正為 relevant single-hop redirects
+- 116 / 116 desktop/mobile 三語視覺案例通過
+- 170 個站內連結無錯誤
+- 92 張圖片無 broken resource
+- 14 個錯誤 legacy redirects 修正為對應正確頁面的單次 redirect
 
-這些數字證明的是 release completeness 與 technical readiness，而不是搜尋排名提升。
+這些數字證明的是**上線完整度與技術準備度**，不是搜尋排名提升。
 
 ---
 
 ## 4. 結果的證據強度
 
-我把目前成果分成三種證據等級：
+我把目前成果分成三種證據等級。
 
-### A. 可直接連到修改的結果
+### A. 可以直接連到修改的結果
 
-例如首頁 performance isolated test。因為改動範圍可控制，較能支持「這個改法造成了這個效能差異」。
+例如首頁效能隔離測試。因為改動範圍可控制，較能支持「這個改法造成了這個效能差異」。
 
 ### B. 修改後的外部趨勢
 
-例如 GSC impressions / clicks 與 AI 摘要曝光。這些是真實外部結果，但同期有多項修改，不能單獨歸因。
+例如 GSC 曝光 / 點擊與 AI 摘要曝光。這些是真實外部結果，但同期有多項修改，不能單獨歸因。
 
 ### C. 尚未驗證的假設
 
-例如只選一個產品作為 AIO experimental group，再比較後續 GSC / AI search visibility。這個想法目前沒有執行，因此不列入成果。
+例如只選一個產品作為 AIO 實驗組，再比較後續 GSC 與 AI 搜尋可見度。這個想法目前沒有執行，因此不列入成果。
 
 ---
 
 ## 5. 下一步分析
 
-接下來若要判斷 SEO 與 AIO 的外部影響，最有價值的不是再增加更多技術 checklist，而是繼續拆解 GSC：
+接下來若要判斷 SEO 與 AIO 的外部影響，最有價值的不是再增加更多技術檢查表，而是繼續拆解 GSC：
 
-- 哪些 query 的 impressions 增加？
-- 新增曝光來自 brand query、產品詞還是技術長尾詞？
-- 哪些 pages 得到新的搜尋曝光？
-- 原有高排名 query 是否真的下降？
-- AI 摘要曝光主要集中在哪些 query / page？
-- 新增三語內容是否帶來新的語言或市場 exposure？
+- 哪些搜尋詞的曝光增加？
+- 新增曝光來自品牌詞、產品詞還是技術長尾詞？
+- 哪些頁面得到新的搜尋曝光？
+- 原有高排名搜尋詞是否真的下降？
+- AI 摘要曝光主要集中在哪些搜尋詞與頁面？
+- 新增三語內容是否帶來新的語言或市場曝光？
 
-這些問題會決定下一輪 SEO / AIO 優化應該做內容、CTR、排名、內鏈還是索引修正。
+這些問題會決定下一輪 SEO / AIO 優化應該優先處理內容、CTR、排名、站內連結還是索引。
