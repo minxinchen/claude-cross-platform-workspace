@@ -1,95 +1,132 @@
-# AIO：從「讓機器少猜」到可驗證假設
+# AIO 方法：讓搜尋引擎與 AI 少猜一點
 
-## 我怎麼理解 AIO
+## 目標
 
-這個專案裡的 AIO 不是一開始就有完整答案，也不是「Schema 越多越好」。比較接近的問題是：
+這個專案裡的 AIO 不是「多塞一些關鍵字」或「Schema 加越多越好」。我把問題定義成：
 
-> 網站除了讓人看懂，能不能也讓搜尋引擎與 AI 更容易知道「這頁是什麼、產品是什麼、哪份資料才是真的」？
+> **網站除了讓人看懂，能不能也讓搜尋引擎與 AI 更容易知道這頁在講什麼、產品是什麼、不同語言頁的關係是什麼，以及哪份產品資料才是真的？**
 
-實際工作包含：
+因此 AIO 與 SEO 並不是兩套完全分開的工作。很多基礎條件其實重疊：可讀的 HTML、清楚的頁面主題、正確的 canonical / hreflang、穩定的產品 facts、合理的 internal linking，以及搜尋引擎實際能抓到的公開內容。
 
-- 核心頁使用清楚的 H1 與第一段答案
-- 把重要產品資訊放進 HTML，而不是只藏在圖片 / PDF
-- 三語頁建立 canonical 與 reciprocal hreflang
-- metadata 說清楚頁面的角色
-- visible FAQ / pillar content 建立問題、答案與產品之間的關係
-- 以 source-of-truth 控制產品資料
-- 驗證 rendered DOM，而不是只相信 WordPress 後台設定
-- 使用 GSC 觀察 Google 實際看到的 URL、indexing 與 search data
+---
 
-## Schema.org / JSON-LD 是什麼
+## 使用的方法
 
-可以把它理解成兩層：
+### 1. 清楚的頁面主題
 
-- **Schema.org**：機器可共用的欄位字典，例如「這是產品」、「這是文章」、「這是組織」。
-- **JSON-LD**：把這些欄位填成一份機器容易解析的資料格式。
+核心頁整理 H1 與第一段內容，讓頁面主要主題不要藏在模板、圖片或裝飾文字裡。
 
-它的價值不是保證排名上升，而是降低機器對頁面角色與資料關係的猜測空間。
+H1 在這裡不是「AI 專用技巧」，比較像頁面的主要招牌：先讓人與搜尋引擎知道這一頁主要回答什麼。
 
-## 一個重要反例：不是 Schema 越多越好
+### 2. 重要產品資訊放進 HTML
 
-專案曾嘗試 Product / ProductModel structured data。Google 的實際驗證顯示，若頁面缺少符合 Product rich result 要求的真實公開商業資料，就不能為了通過驗證而捏造 Offer、price、review 或 rating。
+產品規格若只存在圖片或 PDF，機器與使用者都比較難直接取得。因此把重要且已確認的產品資訊轉成可讀 HTML，並維持與原始 truth source 一致。
 
-Production-safe 的決策因此是：
+### 3. 三語關係
 
-- 不虛構商業欄位
+使用 canonical 與 reciprocal hreflang 表達繁中、簡中、英文之間的對應關係，同時確認 translated page 不只是「有 URL」，而是真的有等價內容。
+
+### 4. Structured Data
+
+- **Schema.org**：一套共用欄位 vocabulary，用來描述 Article、Organization 等 entity。
+- **JSON-LD**：把這些欄位放進頁面的 machine-readable format。
+
+Structured Data 的目標不是保證排名，而是讓頁面角色與資料關係更明確。
+
+### 5. Google Search Console
+
+GSC 不只是成果報表。它用來觀察 Google 實際知道哪些 URL、哪些頁面被索引、哪些 URL 被視為 redirect，以及 impressions / clicks / queries / pages 的變化。
+
+專案後期就曾透過 GSC Page Indexing 發現 32 個 redirected URLs，再進一步找出其中 14 個真正錯誤的 legacy homepage fallbacks。
+
+---
+
+## 遇到的問題：Product Schema 不是越多越好
+
+專案曾嘗試 Product / ProductModel structured data。
+
+但實際用 Google Rich Results Test 驗證後，問題變得很清楚：這是一個 B2B quote-only 網站，公開頁沒有 verified：
+
+- Offer
+- price
+- inventory
+- review
+- rating
+
+如果為了讓 Product rich result 看起來完整而補這些欄位，就會讓 machine-readable data 比公開頁面「知道得更多」。
+
+### Production 決策
+
+- 不虛構 Offer / price / review / rating
 - 移除不適合的 Product / ProductModel rich-result implementation
-- 保留與公開頁一致的 Article、Breadcrumb、Organization 與 visible product content
+- 保留可由公開內容支持的 Article、Breadcrumb、Organization
+- visible product content 繼續維持清楚、可讀與可驗證
 
-原則：
+我最後採用的原則是：
 
-> Structured data 不能比人類在頁面上看到的內容更「知道得多」。
+> **Structured Data 只能描述網站真的有、使用者也能驗證的資訊。**
 
-## 但 Production policy 不等於所有實驗都結束
+---
 
-這裡出現過一個 Human 與 Agent 的真實分歧。
+## AIO 結果目前能說到哪裡
 
-### Agent optimization target
+截至 2026/8/20 的 GSC comparison：
 
-原始要求很重視：
+- AI 摘要曝光：4,428 → 5,736，總量約 **+29.5%**
+- 兩個區間天數不同，日均約 75.1 → 110.3，約 **+47.0%**
+- 同期整體 GSC impressions：16,100 → 21,700
+- AI 摘要曝光占整體曝光比例約 27.5% → 26.4%
 
-- Rich Results 不可以出 error
-- 不補不存在的 Offer / price / review / rating
-- 不應宣稱 unsupported schema 會直接提升排名
+因此目前資料支持：
 
-所以 Agent 傾向採取一致、保守、production-safe 的全站策略。
+> **AI 摘要曝光增加，而且大致跟著整體搜尋可見度一起增加。**
 
-### Human hypothesis
+但目前資料不支持：
 
-Human 提出另一個尚未實作的想法：
+> 「某個 Schema / FAQ / H1 修改造成 AI 摘要曝光提升。」
 
-> 是否只選一個產品當 experimental group，在不虛構 Offer、price、review、rating 的前提下，強化 visible FAQ、HTML 資訊結構與 semantic clarity，其他產品保持不變，再觀察後續 GSC 與 AI/search visibility 是否出現差異？
+也不能說 AIO 已經讓 AI 摘要占比提高，因為占比目前大致維持同一量級。
 
-這不是已證明的 AIO 方法，也不是已完成成果。
+→ [完整結果與限制](results.md)
 
-目前狀態：**proposed / not executed / no evidence yet**。
+---
 
-保留這個 hypothesis 的原因是：
+## 尚未執行的 AIO 實驗
 
-> Production validation 的 objective 是降低錯誤；Experiment 的 objective 是提高 information gain。兩者不一定相同。
+我另外提出過一個還沒有執行的想法：
 
-## AIO 的真正邊界
+> 只選一個產品作為 experimental group，在不虛構 Offer、price、review、rating 的前提下，強化 visible FAQ、HTML information structure 與 semantic clarity；其他可比較產品保持不變，再觀察後續 GSC 與 AI/search visibility 是否出現差異。
 
-### AI 可以做
+Agent 當時偏向 production-safe 的 zero-error Rich Results 策略，沒有支持把這個想法直接套到全站。
 
-- 從產品知識產生候選 FAQ
-- 比對三語內容落差
-- 產生內部連結建議
+我認為這兩個目標其實不同：
+
+- production validation：盡量降低已知錯誤
+- experiment：控制差異，取得新的資訊
+
+所以這個想法目前保留為**未執行、未驗證假設**，不列入成果。
+
+→ [單一產品 AIO 實驗假設](../hypotheses/single-product-aio-experiment.md)
+
+---
+
+## AIO 的邊界
+
+AI Agent 可以協助：
+
+- 從已確認產品資料產生候選 FAQ
+- 比對三語內容差異
+- 找 internal linking 機會
 - 產生 schema draft
-- 找出頁面與 truth registry 的矛盾
-- 提出 measurable experiment design
+- 找出頁面與 truth source 的矛盾
+- 協助設計可量測 experiment
 
-### AI 不可以做
+AI Agent 不可以：
 
-- 猜價格
-- 猜庫存
-- 猜產品性能
-- 把 pending engineering field 改成 confirmed
-- 因為「看起來合理」就補 Offer / review / rating
-- 把未執行的 hypothesis 寫成已驗證成果
+- 猜 price / inventory / product performance
+- 把 pending engineering field 當成 confirmed
+- 為了通過 validator 虛構 Offer / review / rating
+- 把未執行的 hypothesis 寫成結果
+- 把 technical readiness 直接寫成 ranking 或 AI citation improvement
 
-## 判準
-
-這類 B2B 網站的技術準備可以量測：頁面是否可讀、資料是否一致、語言關係是否正確、Google 是否能索引、structured data 是否誠實。
-
-但排名、AI 引用、品牌是否被摘要提及，屬於後續外部結果。沒有 evidence 時，不把「可能有幫助」寫成「已經提升」。
+AIO 在這個案例裡是一個持續觀察的方向，不是一個已經被單一 KPI 證明完成的功能。
