@@ -1,98 +1,98 @@
 {
-  "purpose": "Compress large work logs into decision-relevant evidence so an agent loads the few records that can actually change a conclusion.",
+  "purpose": "把大量工作 log 壓縮成與決策直接相關的證據，讓 Agent 優先載入真正可能改變結論的紀錄。",
   "loading_rule": [
-    "read project state first",
-    "identify the problem class",
-    "load the representative log for that class",
-    "follow down to raw evidence only when the summary is disputed or insufficient"
+    "先讀目前 project state",
+    "辨認目前問題屬於哪一類",
+    "載入該問題的 representative log",
+    "只有摘要不足、被質疑或需要重驗時才往下讀 raw evidence"
   ],
   "cases": [
     {
       "id": "homepage_performance",
-      "status": "validated",
-      "phenotype": "Mobile users waited roughly 13 seconds for the main first-screen content.",
-      "candidate_variables": ["hosting", "image weight", "slider plugin", "JavaScript", "CSS", "cache"],
+      "status": "已驗證",
+      "problem": "Mobile 使用者約要等 13 秒，首頁主要第一屏內容才完成 LCP。",
+      "candidate_variables": ["hosting", "image weight", "Smart Slider 3", "JavaScript", "CSS", "cache"],
       "representative_log": "performance/isolated-first-screen-test.md",
       "high_information_evidence": {
-        "experiment": "Replace only the first-screen slider with a static lightweight hero while keeping the rest of the page comparable.",
+        "experiment": "只把第一屏 Smart Slider 3 換成 static lightweight hero，其餘頁面盡量保持可比較。",
         "baseline_mobile_lcp_seconds": 13.10,
         "isolated_test_mobile_lcp_seconds": 3.16,
         "production_mobile_lcp_seconds": 2.72
       },
-      "overlooked_variable": "The first-screen interaction architecture, not hosting alone, dominated perceived loading time.",
-      "rejected_explanation": "Changing hosting was the primary solution.",
-      "decision": "Remove the heavy slider from the first screen, rebuild the visual as a lightweight hero, then restore visual rhythm without restoring the slider runtime.",
-      "decision_effect": "Changed the implementation path from infrastructure-first to front-end-structure-first.",
-      "confidence": "high"
+      "overlooked_variable": "真正高影響的變因是 first-screen interaction / rendering structure，而不只是 hosting。",
+      "rejected_explanation": "把換 hosting 當成主要解法。",
+      "decision": "先移除首屏 heavy slider，使用 lightweight hero 重建視覺，再在不恢復 slider runtime 的前提下調整視覺節奏。",
+      "decision_effect": "實作方向從 infrastructure-first 改成 front-end-structure-first。",
+      "confidence": "高"
     },
     {
       "id": "false_multilingual_completion",
-      "status": "validated",
-      "phenotype": "A multilingual release was reported complete, but equivalent pillar content existed in only one language.",
+      "status": "已驗證",
+      "problem": "multilingual release 曾被描述為完成，但實際上只有一個語言有完整 pillar content。",
       "representative_log": "incidents/multilingual-false-pass.md",
       "high_information_evidence": {
-        "finding": "URLs, H1, hreflang and articles existed across languages, but equivalent pillar DOM did not.",
-        "secondary_modifier": "Logged-in WordPress output could differ from anonymous cached output."
+        "finding": "三語都有 URL、H1、hreflang 與文章，但並沒有三語等價的 pillar DOM。",
+        "secondary_modifier": "登入 WordPress 後看到的內容可能和 anonymous cache 不同。"
       },
-      "overlooked_variable": "The release denominator checked language surfaces, but not equivalent rendered content per language.",
-      "wrong_inference": "Success in one language was generalized to the multilingual ecosystem.",
-      "decision": "Require per-language anonymous DOM validation and desktop/mobile checks before multilingual completion can pass.",
-      "decision_effect": "Created a stricter multilingual release gate.",
-      "confidence": "high"
+      "overlooked_variable": "舊驗收量到的是 language surface coverage，不是 rendered content equivalence。",
+      "wrong_inference": "把單一語言成功外推成三語整體成功。",
+      "decision": "multilingual completion 必須逐語言做 anonymous DOM validation 與 desktop/mobile checks。",
+      "decision_effect": "重新定義三語 release gate。",
+      "confidence": "高"
     },
     {
       "id": "product_truth_drift",
-      "status": "validated",
-      "phenotype": "The visible product body used updated engineering facts while older FAQ and machine-readable data still exposed obsolete values.",
+      "status": "已驗證",
+      "problem": "產品正文已用新版工程資料，但較舊 FAQ 與 machine-readable content 還暴露 obsolete values。",
       "representative_log": "incidents/product-truth-drift.md",
       "high_information_evidence": {
-        "finding": "One product fact had multiple representations: visible body, FAQ, structured data and language variants."
+        "finding": "同一 product fact 同時存在 visible body、FAQ、structured data、knowledge JSON 與 translated pages。"
       },
-      "overlooked_variable": "Updating the visible page did not invalidate every derived representation of the same fact.",
-      "decision": "Make the owner-confirmed registry authoritative and validate all derived representations together.",
-      "decision_effect": "Added a consistency validator and legacy-value ban checks.",
-      "confidence": "high"
+      "overlooked_variable": "更新 visible page 不會自動讓其他 derived representations 失效。",
+      "decision": "以 owner-confirmed registry 為最高 truth source，所有 derived representations 一起驗證。",
+      "decision_effect": "新增 consistency validator 與 legacy-value ban checks。",
+      "confidence": "高"
     },
     {
       "id": "external_search_reality_check",
-      "status": "validated",
-      "phenotype": "Local/public checks looked healthy, but first-party search-console data exposed legacy URL behavior that still needed correction.",
+      "status": "已驗證",
+      "problem": "目前網站 local/public QA 正常，但 Google Search Console 仍暴露 legacy URL routing 問題。",
       "representative_log": "search/search-console-redirect-review.md",
       "high_information_evidence": {
         "redirected_urls_reviewed": 32,
         "incorrect_homepage_fallbacks": 14
       },
-      "overlooked_variable": "A local PASS does not guarantee that the search engine sees the same historical URL graph.",
-      "decision": "Treat first-party search-console evidence as an external reality check and repair unambiguous legacy paths with relevant single-hop redirects.",
-      "decision_effect": "Search data became an input to engineering decisions, not only a reporting dashboard.",
-      "confidence": "high"
+      "overlooked_variable": "local PASS 不代表搜尋引擎看到的 historical URL graph 也正確。",
+      "decision": "把 GSC 當成外部 engineering evidence，修正有明確 modern equivalent 的 legacy paths。",
+      "decision_effect": "search data 不再只是成果報表，也成為網站修正的輸入。",
+      "confidence": "高"
     },
     {
       "id": "experiment_vs_production",
-      "status": "validated_boundary",
-      "phenotype": "A lightweight scroll-reveal interaction existed on an isolated test page but was not part of the production homepage at that checkpoint.",
+      "status": "邊界已驗證",
+      "problem": "scroll-reveal interaction 曾存在於隔離 test page，但該 checkpoint 並不是 production homepage 功能。",
       "representative_log": "experiments/scroll-reveal-state-check.md",
       "high_information_evidence": {
         "test_page": "public but noindex",
         "heavy_slider_present": false,
         "production_test_marker_present": false
       },
-      "overlooked_variable": "An experiment existing in the project can later be misremembered as a released feature.",
-      "decision": "Record experiment state separately from production state and require explicit release evidence before describing an experiment as shipped.",
-      "decision_effect": "Prevents later agents from converting project history into false production claims.",
-      "confidence": "high"
+      "overlooked_variable": "repo 裡存在一個 experiment，不等於 production 曾經上線。",
+      "decision": "experiment state 與 production state 分開記錄；沒有 explicit release evidence 就不能寫成 shipped。",
+      "decision_effect": "避免後續 Agent 把真實專案歷史加工成不存在的 production claim。",
+      "confidence": "高"
     },
     {
       "id": "single_product_aio_hypothesis",
-      "status": "proposed_not_executed",
-      "phenotype": "The human operator and agent disagreed about whether a production-safe structured-data policy should prevent a limited AIO experiment.",
+      "status": "尚未執行",
+      "problem": "production-safe Structured Data policy 與一個有限範圍 AIO experiment 的目標不完全相同。",
       "representative_log": "hypotheses/single-product-aio-experiment.md",
-      "human_hypothesis": "Use one product as an experimental group: improve visible FAQ and semantic clarity without inventing Offer, price, review or rating fields, then compare later search/AI visibility against unchanged products.",
-      "agent_objection": "The original objective emphasized zero Rich Results errors and the agent did not expect unsupported schema additions to improve eligibility.",
-      "overlooked_variable": "Production validation and information-gain experiments optimize different objectives.",
-      "decision": "Do not roll the idea out site-wide. Preserve it as an isolated, measurable hypothesis.",
-      "evidence": "not yet collected",
-      "confidence": "unvalidated"
+      "human_hypothesis": "只選一個產品作為 experimental group，在不虛構 Offer、price、review、rating 的前提下強化 visible FAQ 與 semantic clarity，再和 unchanged products 比較後續 search / AI visibility。",
+      "agent_objection": "原始 objective 重視 Rich Results zero-error，Agent 不認為 unsupported schema addition 能改善 eligibility。",
+      "overlooked_variable": "production validation 與 information-gain experiment 最佳化的是不同目標。",
+      "decision": "不做 site-wide rollout，先保留成未驗證、可量測的假設。",
+      "evidence": "尚未收集",
+      "confidence": "未驗證"
     }
   ]
 }
