@@ -21,6 +21,10 @@ AI Agent 是方法之一，不是專案主角。
 | GSC 日均點擊 | 約 5.1 / 日 | **約 6.7 / 日** |
 | AI 摘要日均曝光 | 約 75.1 / 日 | **約 110.3 / 日** |
 
+![首頁效能摘要](assets/performance-summary.svg)
+
+![GSC 搜尋結果摘要](assets/gsc-summary.svg)
+
 GSC 後期區間比前期短，因此另外用日均值做粗略標準化。這些搜尋數據屬於**修改後觀察到的外部趨勢**，不是 controlled experiment，不能把成長直接歸因到單一 SEO 或 AIO 修改。
 
 → [完整結果與限制](docs/results.md)
@@ -167,6 +171,9 @@ AI Agent 主要處理大量掃描、三語比較、HTML / script 候選版本、
 .
 ├── README.md
 ├── TODO.md
+├── assets/
+│   ├── performance-summary.svg
+│   └── gsc-summary.svg
 ├── docs/
 │   ├── methods.md
 │   ├── results.md
