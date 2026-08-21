@@ -1,45 +1,49 @@
-# Representative Log: Multilingual False PASS
+# 代表性 Log：三語 False PASS
 
-## Problem
+## 問題
 
-A multilingual release had been described as complete, but equivalent pillar content actually existed in only one language.
+某次 multilingual release 已被描述成「完成」，但後續檢查發現只有一個語言真正存在完整 pillar content。
 
-## What had passed
+## 當時已經通過什麼
 
-The earlier release gate already checked useful signals such as:
+舊 release gate 並不是完全沒有檢查，它已經驗證：
 
 - translated URLs
 - H1
 - articles
 - hreflang
 - schema
-- visual scenarios
+- visual cases
 
-Those checks were real, but the denominator was incomplete.
+問題在於驗收的分母不完整。
 
-## High-information evidence
+## 關鍵證據
 
-The translated category pages existed, yet equivalent rendered pillar DOM was missing in two language versions.
+英文與簡中的 category URL 都存在，但 rendered pillar DOM 並沒有和繁中一樣完整。
 
-A second modifier complicated diagnosis: logged-in WordPress output could show newer content while anonymous visitors still received older cached output.
+同時還有第二個干擾變因：登入 WordPress 後可能看到新版內容，但 anonymous visitor 仍從 Breeze cache 取得舊版本。
 
-## Overlooked variable
+## 原本忽略的地方
 
-**Surface coverage is not content equivalence.**
+**有語言頁面，不等於有等價語言內容。**
 
-The old reasoning implicitly treated:
+舊流程其實默默做了這個錯誤推論：
 
-`translated URL exists` → `translated experience is complete`
+```text
+translated URL exists
+        ↓
+translated experience complete
+```
 
-That inference was false.
+實際上這兩件事不是同一件事。
 
-## Human / workflow decision
+## 決策改變
 
-Multilingual completion now requires per-language anonymous validation of the rendered result, including the expected content structure and desktop/mobile behavior.
+multilingual completion 不再只看 URL、H1 或 hreflang，而是要求每個語言逐一驗證 anonymous rendered result。
 
-## New gate
+## 新的驗收條件
 
-Future checks must verify, per language:
+每個語言版本都要確認：
 
 - unique H1
 - complete pillar DOM
@@ -49,8 +53,10 @@ Future checks must verify, per language:
 - same-language CTA
 - no duplicate required IDs
 - no horizontal mobile overflow
-- anonymous public output after cache purge
+- cache purge 後的 anonymous public output
 
-## Why this log is representative
+## 為什麼這份 Log 重要
 
-The key lesson is not that "a translation was missing." The important evidence exposed a flaw in the release model itself: the denominator measured language surfaces, not equivalent language experiences.
+真正值得留下的不是「漏了一個翻譯頁」，而是這份 evidence 找到了**驗收模型本身的問題**：原本量到的是 multilingual surface coverage，不是 multilingual content equivalence。
+
+這個事件之後，「一個語言成功」不能再被外推成「整個三語網站成功」。
