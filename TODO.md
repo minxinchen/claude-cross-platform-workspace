@@ -13,8 +13,8 @@
 
 ## P1｜讓招聘者 60–90 秒看懂
 
-- [x] 縮短 README，將方法與結果細節下沉到 docs
-- [ ] README 首屏再壓縮成四件事：目標、我的角色、代表結果、技術棧
+- [x] README 已再縮短，方法與結果細節下沉到 docs
+- [x] README 首屏已固定回答：目標、我的角色、代表結果、技術棧
 - [x] 用 Mermaid 加入「材料與方法」流程圖
 - [x] 用 Mermaid 加入「問題 → 證據 → 決策 → 結果」案例圖
 - [x] 5 個主要問題保留短摘要，詳細內容連到 case / incident 文件
@@ -34,7 +34,7 @@
 - [x] 首頁效能：Smart Slider 3 與首屏瓶頸
 - [x] 三語內容：URL 存在不等於內容等價
 - [x] 產品資料：正文更新但 FAQ / JSON-LD 殘留舊值
-- [x] GSC：14 個 legacy redirects 錯誤導向首頁
+- [x] GSC：14 個舊網址錯誤導向首頁
 - [x] Structured Data：不為 Rich Results 捏造 Offer / price / review / rating
 - [x] 首頁效能案例統一成：問題 → 材料與證據 → 方法 → 解法 → 結果 → 限制
 - [x] 三語案例統一成：問題 → 材料與證據 → 方法 → 解法 → 結果 → 限制
@@ -57,6 +57,7 @@
 - [x] 把 Agent / log 內容移到 README 後半與 docs，不與 SEO/AIO 目標搶主線
 - [x] 代表性 log 只保留真正改變決策的案例
 - [x] 檢查 evidence map 內的 representative log 路徑均對應真實檔案
+- [x] 決定保留 `examples/evidence-map.example.json` 作為 Agent / log 方法的工程附錄，不放在作品集主線
 
 ## P2｜公開安全與一致性
 
@@ -64,18 +65,20 @@
 - [x] 搜尋已知私人工作路徑與內部 WordPress ID，公開 repo 無命中
 - [x] 搜尋 `production-grade`、`guarantee` 等過度誇大用語，公開 repo 無命中
 - [x] README 主要連結均對應現有檔案
-- [ ] 再做一輪中英文用語精簡，避免非必要英文太多
+- [x] README、`docs/methods.md`、`docs/human-ai-workflow.md` 再做中文化，減少非必要英文敘事
+- [x] 檢查近期 commit messages，未出現客戶名稱或敏感識別資訊
 
 ## P3｜最後整理
 
-- [ ] 把 README 再縮短 15–25%，讓第一屏更像 portfolio landing page
-- [ ] 檢查 SVG / Mermaid 在 GitHub 實際渲染是否正常
-- [ ] 整理 commit history，確認沒有公開前期不適合的描述或敏感內容
-- [ ] 決定是否保留 `examples/` 裡較工程化的 Agent evidence map 作為附錄
+- [x] README 再縮短成 portfolio landing page
+- [x] 確認 `assets/gsc-summary.svg` 與 `assets/performance-summary.svg` 已存在於 main branch
+- [ ] GitHub 實際頁面上的 SVG / Mermaid 視覺渲染仍需 UI 最終目視確認
+- [ ] 若之後補更細 GSC 資料，再更新搜尋詞 / 頁面層級分析
 
-## 受限事項
+## 受限事項｜需要手動處理
 
-- [ ] Repo 名稱目前仍是 `claude-cross-platform-workspace`，與內容不符。現有連接器沒有 rename repository action，需要手動改名。建議：`seo-aio-b2b-case-study`。
+- [ ] **Repo 名稱仍是 `claude-cross-platform-workspace`，與作品集內容不符。** 現有連接器沒有 rename repository action。建議改成 `seo-aio-b2b-case-study`。
+- [ ] **Repo description 仍是舊的「Claude Code 跨平台協作工作空間：Windows Claude + Ubuntu Claude」。** 現有連接器沒有修改 repository metadata 的 action。建議改成：`真實 B2B 工業網站 SEO × AIO 優化案例：效能、三語架構、Structured Data、GSC 與 AI Agent 協作。`
 - [ ] GSC 搜尋詞 / 頁面層級深度分析需要更細的匯出資料，目前只有總覽與 AI 摘要比較資料。
 
 ## 完成定義
