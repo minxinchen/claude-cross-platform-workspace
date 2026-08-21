@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="360" viewBox="0 0 920 360" role="img" aria-labelledby="title desc">
+  <title id="title">首頁 Mobile LCP 優化結果</title>
+  <desc id="desc">Mobile LCP 從 13.10 秒，隔離測試降至 3.16 秒，正式上線後為 2.72 秒。</desc>
+  <rect width="920" height="360" rx="24" fill="#f7f8fb"/>
+  <text x="48" y="58" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#1f2937">首頁效能：先隔離變因，再改正式網站</text>
+  <text x="48" y="92" font-family="system-ui, sans-serif" font-size="16" fill="#6b7280">Mobile LCP，數值越低越好</text>
+
+  <text x="48" y="150" font-family="system-ui, sans-serif" font-size="17" font-weight="600" fill="#374151">修改前</text>
+  <rect x="170" y="126" width="628" height="34" rx="8" fill="#d1d5db"/>
+  <text x="812" y="151" font-family="system-ui, sans-serif" font-size="21" font-weight="700" text-anchor="end" fill="#111827">13.10s</text>
+
+  <text x="48" y="220" font-family="system-ui, sans-serif" font-size="17" font-weight="600" fill="#374151">隔離測試</text>
+  <rect x="170" y="196" width="152" height="34" rx="8" fill="#7c3aed"/>
+  <text x="812" y="221" font-family="system-ui, sans-serif" font-size="21" font-weight="700" text-anchor="end" fill="#111827">3.16s</text>
+
+  <text x="48" y="290" font-family="system-ui, sans-serif" font-size="17" font-weight="600" fill="#374151">正式上線</text>
+  <rect x="170" y="266" width="130" height="34" rx="8" fill="#2563eb"/>
+  <text x="812" y="291" font-family="system-ui, sans-serif" font-size="21" font-weight="700" text-anchor="end" fill="#111827">2.72s</text>
+
+  <text x="48" y="334" font-family="system-ui, sans-serif" font-size="15" fill="#4b5563">Smart Slider 3 → lightweight hero｜Lighthouse Mobile Performance 約 73 → 96</text>
+</svg>
