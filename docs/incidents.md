@@ -1,132 +1,212 @@
-# Incident / Evidence Reviews（去識別化案例）
+# 問題與解法：代表性案例
 
-這些案例不只是「發生過什麼錯」，而是保留真正改變下一步判斷的 high-information evidence。
+這一頁不是把所有 change log 依日期列出來，而是只保留**真正改變判斷與下一步做法**的問題。
 
-每個案例都用同一個框架：
+每個案例都用同一個結構：
 
 ```text
-Phenotype
-→ Candidate explanations
-→ High-information evidence
-→ Overlooked variable
-→ Decision change
-→ New rule / gate
+觀察到什麼問題？
+→ 有哪些可能原因？
+→ 哪一份證據最能區分這些原因？
+→ 原本忽略了什麼？
+→ 因此改了什麼？
+→ 後來新增了什麼驗證方式？
 ```
 
 ---
 
-## Case 00：手機首頁約 13 秒，真正瓶頸不是主機
+## 案例 1：手機首頁約 13 秒
 
-**Phenotype**：首頁 mobile first-screen LCP 約 13.10 秒。
+### 問題
 
-**候選解釋**：hosting、圖片重量、WordPress、slider plugin、JavaScript / CSS、cache。
+首頁 Mobile LCP 約 13.10s。可能原因包含 hosting、圖片重量、WordPress、Smart Slider 3、JavaScript / CSS 與 cache。
 
-**高資訊量 evidence**：建立隔離測試頁，只把首屏 Smart Slider 3 換成 static lightweight hero，其餘頁面盡量維持可比較。Mobile LCP 從 13.10s 降到 3.16s。
+### 關鍵做法
 
-**被忽略的變因**：首屏互動架構本身，比 hosting 更能解釋使用者為什麼要等這麼久。
+建立隔離測試頁，只把第一屏 Smart Slider 3 換成 lightweight static hero，其餘頁面盡量維持可比較。
 
-**決策改變**：不把「換主機」當主要解法，先移除首屏重型 slider，再重新設計輕量 hero。
+### 結果
 
-**Production evidence**：正式上線後 mobile LCP 約 2.72s。視覺仍保留背景、Logo、文字、CTA 與 responsive layout，但不恢復 slider runtime。
+- 原始首頁：13.10s
+- 隔離測試：3.16s
+- 正式改版：2.72s
 
-**教訓**：效能改善不能只看相關性。隔離單一變因的測試，才真正改變 implementation path。
+### 原本容易忽略的地方
 
----
+如果只看「網站慢」，很容易先怪 hosting 或整個 WordPress。但只改第一屏 slider 就產生巨大差異，代表 first-screen rendering structure 才是更高影響的變因。
 
-## Case 01：三語「完成」其實只完成一語
+### 解法
 
-**Phenotype**：繁中 Pillar page 正常，英文與簡中雖已有 URL、文章、H1、hreflang 等基礎結構，卻沒有相同的 Pillar HTML。
+不先做 hosting migration。移除首屏重型 slider runtime，用 HTML / CSS 重建 hero，保留背景、Logo、文案、CTA 與 responsive layout。
 
-**高資訊量 evidence**：舊 gate 能證明 multilingual surfaces 存在，卻不能證明每個語言都存在等價 `.pillar` DOM。
-
-**被忽略的變因**：release denominator 定義錯誤。URL/H1/hreflang 存在，不等於內容等價。
-
-**Secondary modifier**：登入 WordPress 的瀏覽器可能看到新版，而匿名訪客仍命中 cache 舊版。
-
-**決策改變**：不再接受從單一語言外推整個 multilingual ecosystem。
-
-**新增 gate**：每個語言都必須逐一驗證唯一 H1、完整 Pillar DOM、頁內導覽、產品連結、FAQ、CTA、desktop/mobile overflow，並以 anonymous public output 為準。
-
-**教訓**：AI 最危險的錯誤之一不是完全做錯，而是把「局部成功」合理化成「整體完成」。
+→ [完整效能案例](../performance/isolated-first-screen-test.md)
 
 ---
 
-## Case 02：產品主內容更新了，FAQ / JSON-LD 還活在舊世界
+## 案例 2：三語「完成」其實只有一語完整
 
-**Phenotype**：業主提供新版工程規格後，產品主內容已更新，但較早產生的 FAQ 與 machine-readable data 還保留上一版數值。
+### 問題
 
-**高資訊量 evidence**：同一個 product fact 同時存在 visible body、FAQ、structured data、knowledge JSON 與 language variants。
+繁中 Pillar page 正常，英文與簡中也都有 URL、H1、hreflang 與文章，但後來發現英文與簡中沒有相同的完整 Pillar HTML。
 
-**被忽略的變因**：更新一個 representation，不會自動 invalidates 其他衍生 representation。
+### 為什麼原本會 PASS
 
-**風險**：同一頁同時存在兩套產品事實，搜尋引擎、AI 與人類可能讀到不同答案。
+舊 release gate 檢查了：
 
-**決策改變**：以 owner-confirmed registry 為最高 truth source，並把 derived content 一起納入 consistency verification。
+- translated URLs
+- H1
+- articles
+- hreflang
+- schema
+- visual cases
 
-**新增 gate**：產品規格 consistency validator、三語匿名公開頁驗證、legacy-value ban。
+這些檢查沒有錯，但它們無法證明三個語言真的有**等價內容**。
 
-**教訓**：生成內容不是一次性任務。Truth source 更新後，衍生內容也需要 invalidation / regeneration。
+### 原本忽略的地方
 
----
+`URL exists` 不等於 `content equivalent`。
 
-## Case 03：Product Schema 不是越多越好
+另外，登入 WordPress 後看到的新版，也不一定等於 anonymous visitor 從 Breeze cache 拿到的版本。
 
-**Phenotype**：曾嘗試 Product / ProductModel structured data，但頁面沒有足夠的真實公開商業資料支撐 Product rich-result eligibility。
+### 解法
 
-**高資訊量 evidence**：Google 的實際驗證結果，比「Schema 看起來很完整」更重要。
+三語驗收改成逐語言檢查 anonymous rendered DOM，包括：
 
-**被忽略的變因**：machine-readable completeness 與 rich-result eligibility 不是同一件事。
+- unique H1
+- 完整 Pillar DOM
+- 頁內導航
+- 同語言產品連結
+- FAQ
+- CTA
+- desktop/mobile overflow
+- cache purge 後的公開結果
 
-**Production decision**：不虛構 Offer、price、review、rating；移除不適合的 Product / ProductModel implementation，保留與公開頁一致的 Article、Breadcrumb、Organization 與 visible product content。
+這個事件改掉的不是一個翻譯頁，而是**「三語完成」的驗收定義**。
 
-**教訓**：AIO 的目標不是讓 schema 數量增加，而是降低人類內容與機器內容之間的矛盾。
-
-### 尚未執行的 Human hypothesis
-
-另有一個仍未驗證的想法：是否只選一個產品作 experimental group，在不虛構商業欄位的前提下，強化 visible FAQ / semantic clarity，再與其他 unchanged products 比較後續 GSC 或 AI/search visibility。
-
-狀態：**proposed / not executed / no evidence yet**。
-
-這個 hypothesis 被保留，是因為 production zero-error 與 experimental information gain 是不同 objective。
-
----
-
-## Case 04：Search Console 可以推翻本地的「看起來正常」
-
-**Phenotype**：網站本地與公開 QA 可以通過，但第一方 Search Console indexing data 仍顯示一批 legacy redirects。
-
-**高資訊量 evidence**：32 個 redirected URLs 中，大多是合理歷史行為，但 14 個清楚可對應新頁面的 legacy paths 卻錯誤 fallback 到語言首頁。
-
-**被忽略的變因**：local PASS 不等於 search engine 對歷史 URL graph 的理解也正確。
-
-**決策改變**：把 Search Console 從「成果報表」升級成 engineering reality check。
-
-**處理**：對有明確現代等價頁的舊網址建立 relevant single-hop redirects，沒有明確對應者不強行猜測。
-
-**教訓**：外部系統看到的網站狀態，可以成為新的 evidence，並推翻內部驗收假設。
+→ [三語 false PASS 紀錄](../incidents/multilingual-false-pass.md)
 
 ---
 
-## Case 05：做過實驗，不等於正式上線
+## 案例 3：產品正文更新，FAQ / JSON-LD 卻還是舊值
 
-**Phenotype**：專案中存在 scroll-reveal test page 與相關 screenshots / checks。
+### 問題
 
-**高資訊量 evidence**：測試頁有 test marker、`noindex`，且不載入 heavy slider；同一 checkpoint 的 production homepage 明確沒有 test marker。
+業主更新工程規格後，visible product body 已經使用新規格，但較早建立的 FAQ 與 machine-readable data 還留著舊值。
 
-**被忽略的變因**：幾週或幾個月後，Agent 很容易把「repo 裡存在」誤記成「production 曾採用」。
+### 原本忽略的地方
 
-**決策改變**：experiment state 與 production state 必須分開記錄，沒有 explicit release evidence 就不能說 shipped。
+同一個產品事實不是只存在一個地方，而可能同時出現在：
 
-**教訓**：log 不只是證明「做了什麼」，也要能證明「沒有做什麼」。
+- visible product body
+- FAQ
+- JSON-LD
+- product knowledge JSON
+- translated pages
+
+只改正文，不能保證其他衍生內容自動同步。
+
+### 解法
+
+- owner-confirmed engineering data 作為最高產品 truth source
+- Agent 不可以根據「哪個數字看起來合理」自行選值
+- truth source 更新時，同時驗證所有 derived representations
+- 對已知 obsolete values 建立 regression ban
+
+→ [產品資料漂移紀錄](../incidents/product-truth-drift.md)
 
 ---
 
-## Case 06：已經 PASS，還是可以被新證據推翻
+## 案例 4：Structured Data 不是越多越好
 
-**Phenotype**：某次封板 checklist 顯示 PASS，後續更細的匿名與跨語言驗證發現漏同步問題。
+### 問題
 
-**被忽略的變因**：PASS 只代表「當時那組 gate 沒找到問題」，不是永遠正確。
+專案曾嘗試 Product / ProductModel structured data，但 Google 實際 Rich Results 驗證與網站現有的 B2B quote-only 公開資料條件不相容。
 
-**決策改變**：保留舊 release evidence，不修改歷史；新增 incident review、stronger gate，再更新 current project state。
+網站沒有 verified：
 
-**教訓**：成熟的 Agent workflow 必須容許 evidence overturn earlier conclusions。
+- Offer
+- price
+- inventory
+- review
+- rating
+
+### 原本容易走錯的方向
+
+如果目標只是「讓 Schema 看起來更完整」，最簡單的方法反而會變成補不存在的欄位。
+
+### 解法
+
+不捏造資料。Production 移除不適合的 Product / ProductModel rich-result implementation，保留可由公開內容支持的 Article、Breadcrumb、Organization 與 visible product content。
+
+這個案例讓 AIO 的判準從「加更多 Schema」改成「讓人看到的內容與 machine-readable information 一致」。
+
+→ [AIO / Structured Data 方法](aio-governance.md)
+
+---
+
+## 案例 5：本地 QA 正常，但 Google 仍看見錯誤舊網址
+
+### 問題
+
+GSC Page Indexing 顯示 32 個 redirected URLs。
+
+進一步分類後：
+
+- 大部分屬於合理歷史 redirect、HTTP/www normalization、WordPress path 或原本就正確的舊網址
+- 其中 **14 個** legacy paths 有明確的新頁面，卻錯誤 fallback 到語言首頁
+
+### 原本忽略的地方
+
+目前網站 navigation 正常，不代表搜尋引擎看到的歷史 URL graph 也正常。
+
+### 解法
+
+把 Google Search Console 從成果報表變成外部驗證資料：
+
+- 先分類哪些 redirect 是合理的
+- 只修有明確 modern equivalent 的 legacy path
+- 使用 relevant single-hop redirect
+- 沒有明確對應頁的舊網址不硬猜
+- 不宣稱修正當天 GSC 就會立刻更新
+
+→ [GSC redirect 紀錄](../search/search-console-redirect-review.md)
+
+---
+
+## 案例 6：做過實驗，不代表正式上線
+
+### 問題
+
+專案裡有 scroll-reveal test page、screenshots 與 checks。幾週後如果只看檔案，很容易把「曾經測試」誤記成「正式網站曾使用」。
+
+### 關鍵證據
+
+同一 checkpoint：
+
+- test page 可公開存取，但有 `noindex`
+- test page 不載入 heavy slider
+- test marker 存在於實驗頁
+- production homepage 沒有 test marker，也沒有 test-page references
+
+### 解法
+
+experiment state 與 production state 分開記錄，沒有 explicit release evidence 就不能寫成 shipped feature。
+
+→ [實驗狀態紀錄](../experiments/scroll-reveal-state-check.md)
+
+---
+
+## 案例 7：已經 PASS，也可能被新證據推翻
+
+某次 release checklist 曾經 PASS，但後來更完整的 anonymous / multilingual validation 找到漏同步問題。
+
+因此專案採用的做法是：
+
+- 不修改舊 evidence 來假裝從來沒出錯
+- 保留當時的 PASS
+- 新增 incident review
+- 說明舊 gate 少檢查了什麼
+- 建立更完整的新 gate
+- 更新 current project state
+
+這個原則很簡單：**PASS 只代表當時那一組檢查沒有找到問題，不代表結論永遠正確。**
