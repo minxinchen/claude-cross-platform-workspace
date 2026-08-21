@@ -1,178 +1,238 @@
-# Human-AI Evidence-Driven Web Operations Case Study
+# B2B 工業網站 SEO × AIO 優化案例
 
-> De-identified portfolio case study of a real multilingual B2B website project: how a human operator used AI agents, experiments, logs and deterministic checks to make decisions without treating AI conclusions as truth.
+> 一個真實、去識別化的 B2B 工業網站專案。目標不是展示「用了多少 AI」，而是回答一個更直接的問題：**如何把網站的 SEO 與 AIO 基礎做起來，讓搜尋引擎、AI 系統與潛在客戶更容易理解網站與產品資訊？**
 
-## What this project is actually about
+## 專案目標
 
-I did not start with a perfect Agent governance architecture. I started with practical website problems, let AI agents help inspect and modify the site, watched them make mistakes, disagreed with some recommendations, and gradually learned which evidence should be trusted before making the next decision.
+這個專案有兩個主要目標：
 
-The operating pattern became:
+1. **SEO**：改善網站效能、技術結構、三語頁面、索引與舊網址問題，讓 Google 更容易正確抓取、理解與導向內容。
+2. **AIO**：整理頁面語意、產品資料與 machine-readable information，降低搜尋引擎與 AI 系統對「這頁是什麼、產品是什麼、哪份資料才是真的」的猜測空間。
+
+AI Agent 是方法之一，不是專案主角。真正的主軸是：**發現問題、提出解釋、找到能區分解釋的證據、修改、驗證，再觀察外部結果。**
+
+---
+
+## 結果摘要
+
+### 網站效能
+
+| 指標 | 修改前 | 隔離測試 | 正式上線 |
+|---|---:|---:|---:|
+| Mobile LCP | 13.10s | 3.16s | **2.72s** |
+| Lighthouse Mobile Performance | 約 73 | 約 93 | **96** |
+
+首頁原本使用 Smart Slider 3。隔離測試只替換首屏 slider，就讓 Mobile LCP 從 13.10s 降到 3.16s，因此主要問題不在 hosting，而在 first-screen rendering structure。正式頁重新設計後，Mobile LCP 約 2.72s。
+
+→ [效能案例：isolated-first-screen-test.md](performance/isolated-first-screen-test.md)
+
+### Google Search Console 整體搜尋結果
+
+比較兩個 GSC 區間：
+
+- 前期：2026/5/1–2026/6/28，共 59 天
+- 後期：2026/6/30–2026/8/20，共 52 天
+
+| 指標 | 前期 | 後期 | 總量變化 | 依天數換算 |
+|---|---:|---:|---:|---:|
+| 點擊 | 299 | 346 | **+15.7%** | 約 **+31.3% / 日** |
+| 曝光 | 1.61 萬 | 2.17 萬 | **+34.8%** | 約 **+52.9% / 日** |
+| CTR | 1.9% | 1.6% | -0.3 個百分點 | — |
+| 平均排名 | 6.3 | 8.8 | 下降 2.5 位 | — |
+
+曝光與點擊增加，但 CTR 與平均排名沒有同步改善。這代表**搜尋可見度擴張得比點擊效率更快**。目前不能只靠總表判斷是原有 query 排名下滑，還是新增 query / page 開始取得較低順位曝光，因此這部分列為後續 query/page-level analysis。
+
+### AI 摘要曝光
+
+同樣比較前後兩期：
+
+| 指標 | 前期 | 後期 | 變化 |
+|---|---:|---:|---:|
+| AI 摘要曝光 | 4,428 | 5,736 | **+29.5%** |
+| 日均曝光 | 約 75.1 | 約 110.3 | **+47.0%** |
+
+AI 摘要曝光占整體 GSC 曝光約由 27.5% 變為 26.4%，大致維持同一量級。因此目前能說的是：**AI 摘要曝光隨整體搜尋可見度一起增加**，不能宣稱 AIO 已讓 AI 摘要占比顯著提高，也不能把這個變化直接視為單一修改造成的因果結果。
+
+→ [結果與限制：results.md](docs/results.md)
+
+---
+
+## 材料與資料
+
+這個專案使用的不是單一 dataset，而是多種真實網站資料來源。
+
+### 網站資料
+
+- WordPress 公開頁面
+- 產品頁、技術文章、分類頁、FAQ
+- 繁中 / 簡中 / 英文三語內容
+- HTML、圖片、PDF、sitemap、internal links
+- canonical、hreflang、metadata、redirects
+
+### 產品與業務資料
+
+- 業主確認的產品工程規格
+- 既有產品內容與歷史資料
+- 公開產品頁與衍生 FAQ / structured data
+
+### 搜尋與效能資料
+
+- Google Search Console
+- Google Rich Results Test
+- Lighthouse
+- anonymous public HTML
+- desktop / mobile screenshots
+- before / after validation records
+
+### 工作紀錄
+
+- Agent logs
+- change logs
+- rollback records
+- validation JSON
+- regression checks
+
+---
+
+## 方法
+
+整體流程類似一個資料分析與實驗專案：
 
 ```text
-Observe a problem
-      ↓
-Form candidate explanations
-      ↓
-Find evidence that can distinguish them
-      ↓
-Identify overlooked variables
-      ↓
-Change the implementation or validation rule
-      ↓
-Measure again
+建立 baseline
+    ↓
+找出高影響問題
+    ↓
+提出可能原因
+    ↓
+修改或隔離實驗
+    ↓
+公開環境驗證
+    ↓
+Google / GSC 外部驗證
+    ↓
+重新調整方法
 ```
 
-The logs matter because they preserve **why a decision changed**, not just what files were edited.
+### 1. Technical SEO audit
 
-## Example: 13 seconds was not a hosting problem
+檢查 H1、title、description、canonical、hreflang、sitemap、redirects、internal links、images 與公開 HTTP 狀態。
 
-The original mobile homepage took roughly **13.10 seconds** for the main first-screen content to become the Largest Contentful Paint.
+### 2. 內容與語意結構
 
-The site used **Smart Slider 3** because the owner wanted the homepage to feel visually rich rather than static. Instead of immediately blaming hosting, an isolated test page changed one major variable: the first-screen slider was replaced with a lightweight static hero while the rest of the page stayed comparable.
+整理核心頁主題、產品 HTML 資訊、FAQ、pillar content、三語內容與頁面之間的 internal linking，避免重要資訊只存在圖片或 PDF。
 
-```text
-Mobile LCP
-13.10s  →  3.16s  →  2.72s production
-baseline    isolated    redesigned release
-```
+### 3. AIO / Structured Data
 
-That evidence changed the implementation path. The production homepage kept the background, logo, copy, CTA, responsive layout and visual rhythm, but removed the heavy slider runtime.
+研究 Schema.org / JSON-LD、Product、Article、Organization、FAQ 等 machine-readable information，並以 Google 實際驗證結果決定哪些資料適合 production。
 
-See [`performance/isolated-first-screen-test.md`](performance/isolated-first-screen-test.md).
+### 4. Performance experiment
 
-## Logs are loaded like evidence, not dumped into context
+使用 Lighthouse 建立 baseline，再用隔離頁面控制主要變因，確認瓶頸後才修改正式網站。
 
-The original workspace accumulated many Lighthouse runs, raw HTML files, screenshots, JSON checks, stderr files and rollback snapshots. They are necessary evidence, but they are not equally informative.
+### 5. AI Agent-assisted workflow
 
-```text
-Raw Evidence
-Lighthouse / HTML / screenshot / JSON / stderr
-        ↓
-Representative Log
-Which evidence actually changed the interpretation?
-        ↓
-Decision Rule
-What implementation, gate or release rule changed because of it?
-```
+AI Agent 用來處理大量頁面掃描、三語比較、HTML / script 產生、驗證與 log 整理；人負責定義目標、判斷資料權威性、接受或拒絕 Agent 建議，以及決定是否正式上線。
 
-For an Agent, the loading path becomes:
+→ [AI Agent 在專案中的角色](docs/human-ai-workflow.md)
 
-```text
-Question
-   ↓
-Project State
-   ↓
-Problem Class
-   ↓
-Evidence Map
-   ↓
-Representative Log
-   ↓
-Raw Evidence only when needed
-```
+---
 
-The machine-readable index is [`examples/evidence-map.example.json`](examples/evidence-map.example.json).
+## 遇到的主要問題，以及怎麼解
 
-## High-information cases
+### 問題 1：手機首頁約 13 秒
 
-### Performance
+**觀察**：Mobile LCP 約 13.10s。
 
-**Phenotype:** mobile first-screen ≈ 13 seconds.  
-**Evidence:** changing only the heavy first-screen slider reduced LCP from 13.10s to 3.16s.  
-**Overlooked variable:** first-screen interaction architecture mattered more than hosting alone.  
-**Decision:** rebuild the first screen as a lightweight hero. Production LCP reached approximately 2.72s.
+**可能原因**：hosting、圖片、WordPress、Smart Slider 3、JavaScript / CSS、cache。
 
-### Multilingual false completion
+**做法**：建立隔離測試頁，只把 Smart Slider 3 換成 lightweight static hero，其餘頁面盡量保持可比較。
 
-**Phenotype:** an AI-assisted release was described as multilingual-complete.  
-**Evidence:** URLs, H1 and hreflang existed across languages, but equivalent pillar DOM existed in only one language.  
-**Overlooked variable:** surface coverage was mistaken for equivalent rendered content.  
-**Decision:** require per-language anonymous DOM validation before multilingual completion can PASS.
+**結果**：13.10s → 3.16s。
 
-See [`incidents/multilingual-false-pass.md`](incidents/multilingual-false-pass.md).
+**判斷**：主要瓶頸不是 hosting，而是首屏互動與載入結構。
 
-### Product truth drift
+**正式解法**：保留背景、Logo、文字、CTA 與 responsive layout，但移除重型 slider runtime。Production Mobile LCP 約 2.72s。
 
-**Phenotype:** visible product content was updated while older FAQ / machine-readable data still contained obsolete values.  
-**Overlooked variable:** one engineering fact had multiple representations.  
-**Decision:** owner-confirmed data became the highest product truth source, and derived representations were validated together.
+### 問題 2：有三語 URL，不代表三語內容真的完成
 
-See [`incidents/product-truth-drift.md`](incidents/product-truth-drift.md).
+早期 release gate 已經檢查 URL、H1、hreflang、schema 與部分 visual case，但後來發現只有繁中具有完整 pillar content，英文與簡中並沒有等價 rendered DOM。
 
-### Search-engine reality check
+**真正問題**：驗收指標錯把「surface exists」當成「content equivalent」。
 
-**Phenotype:** local/public QA looked healthy, but first-party Search Console data exposed legacy URL behavior that still needed repair.  
-**Evidence:** 32 redirected URLs were reviewed; 14 clear legacy equivalents were incorrectly falling back to a homepage.  
-**Decision:** Search Console became an engineering input, not only a reporting dashboard.
+**解法**：改成逐語言驗證 anonymous rendered DOM、H1、導航、產品連結、FAQ、CTA 與 desktop/mobile overflow，並在 cache purge 後重新檢查。
 
-See [`search/search-console-redirect-review.md`](search/search-console-redirect-review.md).
+→ [三語 false PASS 案例](incidents/multilingual-false-pass.md)
 
-### Experiment ≠ production
+### 問題 3：產品正文更新了，FAQ / JSON-LD 還是舊資料
 
-A scroll-reveal concept existed on an isolated `noindex` test page while the production homepage did not contain the test marker at that checkpoint.
+產品工程規格更新後，visible main content 已是新值，但較早建立的 FAQ / JSON-LD 還保留舊值。
 
-**Decision:** an experiment cannot be described as shipped without explicit release evidence.
+**真正問題**：同一個 product fact 有多個 representation，只更新其中一份不代表其他衍生資料也同步更新。
 
-See [`experiments/scroll-reveal-state-check.md`](experiments/scroll-reveal-state-check.md).
+**解法**：建立 owner-confirmed truth source，讓產品頁、FAQ、structured data、language variants 與 knowledge JSON 一起做 consistency verification。
 
-### Human hypothesis vs Agent optimization target
+→ [產品資料漂移案例](incidents/product-truth-drift.md)
 
-The Agent optimized for a production-safe Rich Results policy: no fabricated Offer, price, review or rating fields, and no unsupported Product implementation.
+### 問題 4：網站自己測試正常，不代表 Google 看到的歷史 URL 也正常
 
-I still had a different, untested question:
+GSC Page Indexing 顯示 32 個 redirected URLs。分類後發現大部分合理，但其中 14 個 legacy paths 明明有清楚的新頁面，卻錯誤導向語言首頁。
 
-> What if only one product became an experimental group with stronger visible FAQ and semantic clarity, while other products stayed unchanged, and I later compared GSC / AI-search visibility?
+**解法**：把 GSC 當成外部驗證資料，將 14 個有明確對應頁的舊網址修成 relevant single-hop redirects。
 
-That experiment has **not been executed** and has **no result yet**. It remains in the repository because production safety and experimental information gain are different objective functions.
+→ [GSC redirect 案例](search/search-console-redirect-review.md)
 
-See [`hypotheses/single-product-aio-experiment.md`](hypotheses/single-product-aio-experiment.md).
+### 問題 5：Structured Data 不是加越多越好
 
-## My role
+曾嘗試 Product / ProductModel，但 Google 的實際 Rich Results 驗證與網站的 B2B quote-only 資料條件不相容。公開頁沒有 verified Offer、price、inventory、review、rating。
 
-I acted as the human operator between business context, the public website, AI agents and external evidence. I was responsible for deciding which problem mattered, which facts were authoritative, whether an Agent recommendation should be accepted/rejected/tested, whether something was allowed to ship, and which failures deserved a permanent validation rule.
+**解法**：不捏造欄位。移除不適合 production 的 Product / ProductModel rich-result implementation，保留可由公開頁支持的 Article、Breadcrumb、Organization 與 visible product content。
 
-AI agents were used for high-volume reading, comparison, implementation drafts, script generation, structured checks and evidence collection.
+→ [AIO 與 Structured Data 方法](docs/aio-governance.md)
 
-## Technical stack
+---
 
-**WordPress · Rank Math · Polylang · Breeze cache · Smart Slider 3 · Google Search Console · Google Rich Results Test · Schema.org / JSON-LD · Python · Node.js · Playwright · Lighthouse · GitHub · Google Drive · AI agents / LLM-assisted workflow**
+## 全站技術驗收
 
-## AIO in plain language
+目前代表性的 release evidence 包含：
 
-AIO here means reducing how much a search engine or AI system has to guess.
+- **122 / 122** sitemap URLs 通過公開檢查
+- **116 / 116** desktop/mobile multilingual visual cases 通過
+- **170** internal links 檢查無錯誤
+- **92** images 無 broken resource
+- **14** 個錯誤 legacy redirects 已修正
 
-- **H1**: state clearly what the page is mainly about.
-- **HTML product information**: do not hide important facts only in images or PDFs.
-- **hreflang / canonical**: describe language relationships and preferred URLs.
-- **Schema.org**: a shared vocabulary for describing entities such as an Article or Organization.
-- **JSON-LD**: a machine-readable format for expressing that vocabulary.
-- **GSC**: first-party evidence of how Google is actually discovering, indexing and routing the site.
+這些數字代表 technical readiness 與 release validation，不等於搜尋排名或 AI 引用的因果證明。
 
-None of these guarantees rankings or AI citations. They are technical conditions that make information more consistent and inspectable.
+---
 
-## Why not add every possible Product schema field?
+## 限制與尚未回答的問題
 
-The public B2B pages did not expose verified Offer, price, inventory, review or rating data. The production-safe policy became:
+這個專案目前仍有幾個不能過度解讀的地方：
 
-> Do not invent a field just to make a machine validator happy.
+1. GSC 前後期不是 controlled experiment，期間內同時有多項 SEO / AIO / performance 修改，因此不能把曝光成長歸因到單一措施。
+2. CTR 1.9% → 1.6%，平均排名 6.3 → 8.8，需要 query/page-level data 才能判斷是既有排名下降，還是新增低順位曝光拉低平均值。
+3. AI 摘要曝光增加，但占整體曝光比例大致持平，因此不能宣稱 AIO 已提高 AI 摘要占比。
+4. 「單一產品做 AIO experimental group」目前仍是未執行假設，沒有結果。
+5. 搜尋引擎索引、排名與 AI 摘要引用都具有時間延遲，技術修正完成不代表外部結果會即時更新。
 
-Unsupported Product / ProductModel rich-result implementation was removed rather than filled with fabricated commercial data. The still-unvalidated single-product experiment is documented separately.
+---
 
-See [`docs/aio-governance.md`](docs/aio-governance.md).
+## Technical Stack
 
-## Repository map
+**WordPress · Rank Math · Polylang · Breeze · Smart Slider 3 · Google Search Console · Google Rich Results Test · Schema.org / JSON-LD · Python · Node.js · Playwright · Lighthouse · GitHub · Google Drive · AI Agents / LLM-assisted workflow**
+
+---
+
+## Repository Map
 
 ```text
 .
 ├── docs/
+│   ├── results.md
 │   ├── human-ai-workflow.md
 │   ├── aio-governance.md
 │   └── incidents.md
-├── examples/
-│   ├── evidence-map.example.json
-│   ├── product-truth-registry.example.json
-│   ├── project-state.example.json
-│   └── release-gate.example.json
 ├── performance/
 │   └── isolated-first-screen-test.md
 ├── incidents/
@@ -184,27 +244,21 @@ See [`docs/aio-governance.md`](docs/aio-governance.md).
 │   └── scroll-reveal-state-check.md
 ├── hypotheses/
 │   └── single-product-aio-experiment.md
+├── examples/
+│   ├── evidence-map.example.json
+│   ├── product-truth-registry.example.json
+│   ├── project-state.example.json
+│   └── release-gate.example.json
 ├── logs/
 │   └── README.md
 └── scripts/
     └── verify-release-gate.example.js
 ```
 
-## What was intentionally removed
+## 專案結論
 
-This public version removes or generalizes client identity, private business context, credentials, operational paths, raw crawls, identifiable screenshots, unpublished engineering facts, internal WordPress IDs and raw logs that contain client-specific material.
+這個案例不是「用 AI 做 SEO」的展示，而是一個完整的網站優化問題：
 
-The public repo keeps the **decision structure** and representative evidence patterns instead of exposing the client workspace.
+> **我想把 SEO 與 AIO 做起來，因此先建立 baseline，用網站資料、GSC、Lighthouse、產品資料與 Agent logs 找問題；遇到錯誤時重新定義驗收方式，再用公開結果與 Google 的外部資料驗證。**
 
-## Takeaway
-
-The useful skill I developed was not simply asking AI to optimize a website. It was learning to ask:
-
-1. What is the observed problem?
-2. Which variables could explain it?
-3. Which log actually distinguishes those explanations?
-4. What important variable did the Agent or I overlook?
-5. What decision should change because of that evidence?
-6. What new check prevents the same reasoning failure from recurring?
-
-That is the operating model behind this case study.
+AI Agent 提供速度與規模，人負責問題定義、資料真實性、實驗判斷與最後決策。
