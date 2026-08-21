@@ -8,6 +8,18 @@
 
 因此 AIO 與 SEO 並不是兩套完全分開的工作。很多基礎條件其實重疊：可讀的 HTML、清楚的頁面主題、正確的 canonical / hreflang、穩定的產品 facts、合理的 internal linking，以及搜尋引擎實際能抓到的公開內容。
 
+```mermaid
+flowchart LR
+    A[清楚 H1 與頁面主題] --> G[降低機器猜測]
+    B[產品資訊放進 HTML] --> G
+    C[canonical / hreflang] --> G
+    D[FAQ / pillar / internal links] --> G
+    E[owner-confirmed truth source] --> G
+    F[Schema.org / JSON-LD] --> G
+    G --> H[Google / AI 能取得較一致的公開資訊]
+    H --> I[GSC / Rich Results / 搜尋結果持續觀察]
+```
+
 ---
 
 ## 使用的方法
@@ -55,7 +67,7 @@ GSC 不只是成果報表。它用來觀察 Google 實際知道哪些 URL、哪�
 
 如果為了讓 Product rich result 看起來完整而補這些欄位，就會讓 machine-readable data 比公開頁面「知道得更多」。
 
-### Production 決策
+### 正式環境決策
 
 - 不虛構 Offer / price / review / rating
 - 移除不適合的 Product / ProductModel rich-result implementation
@@ -97,12 +109,12 @@ GSC 不只是成果報表。它用來觀察 Google 實際知道哪些 URL、哪�
 
 > 只選一個產品作為 experimental group，在不虛構 Offer、price、review、rating 的前提下，強化 visible FAQ、HTML information structure 與 semantic clarity；其他可比較產品保持不變，再觀察後續 GSC 與 AI/search visibility 是否出現差異。
 
-Agent 當時偏向 production-safe 的 zero-error Rich Results 策略，沒有支持把這個想法直接套到全站。
+Agent 當時偏向正式環境的 zero-error Rich Results 策略，沒有支持把這個想法直接套到全站。
 
 我認為這兩個目標其實不同：
 
-- production validation：盡量降低已知錯誤
-- experiment：控制差異，取得新的資訊
+- 正式環境驗證：盡量降低已知錯誤
+- 實驗：控制差異，取得新的資訊
 
 所以這個想法目前保留為**未執行、未驗證假設**，不列入成果。
 
