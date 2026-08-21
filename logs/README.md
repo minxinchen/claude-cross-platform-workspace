@@ -1,87 +1,118 @@
-# Logs as Decision Evidence
+# Log：怎麼從大量紀錄找到真正有用的證據
 
-這個公開作品集不放原始客戶 log，而是示範如何把大量 work logs 壓縮成 Agent 真正需要的「決策記憶」。
+這個公開作品集不放原始客戶 log，而是保留一個比較重要的方法：**大量工作紀錄裡，哪些真的改變了問題判斷？**
 
-## Raw log 不是重點，能改變判斷的 log 才是
+原專案有大量 Lighthouse runs、HTML、screenshots、stderr、JSON、before / after snapshots。這些原始資料不可缺少，但不代表每次都要全部讀進 Agent context。
 
-原專案有大量 Lighthouse runs、HTML、screenshots、stderr、JSON、before/after snapshots。它們像程式裡的底層資料與測試 fixture：不可缺少，但不應全部塞進 Agent context。
-
-真正優先載入的是能回答這四個問題的代表性 log：
-
-1. **問題真正是什麼？**
-2. **哪個 evidence 排除了原本可能的解釋？**
-3. **哪個容易被忽略的變因讓舊結論失效？**
-4. **因此下一步決策或 gate 改了什麼？**
-
-## 建議的載入順序
+## 我怎麼分類 Log
 
 ```text
-Question
+Raw Evidence
+Lighthouse / HTML / screenshot / JSON / stderr
+        ↓
+Representative Log
+哪一份紀錄真正改變了對問題的解釋？
+        ↓
+Decision
+因此下一步做法、驗收方式或 release decision 改了什麼？
+```
+
+一份 log 如果只是記錄「做過某件事」，資訊量不一定高。
+
+真正值得優先載入的是能回答這四個問題的紀錄：
+
+1. 問題到底是什麼？
+2. 哪一份 evidence 排除了原本可能的解釋？
+3. 哪個容易被忽略的變因讓舊結論失效？
+4. 因此下一步決策或 validation rule 改了什麼？
+
+---
+
+## Agent 建議的載入順序
+
+```text
+目前問題
    ↓
 Project State
    ↓
-Problem Class
+問題類別
    ↓
 Evidence Map
    ↓
 Representative Log
    ↓
-Raw Evidence only if needed
+必要時才讀 Raw Evidence
 ```
 
-Agent 不需要先讀幾千個檔案。先讀 `examples/evidence-map.example.json`，找出和目前問題最接近的 case。只有當摘要不足、證據互相衝突、或需要重新驗證時，才往下讀 raw evidence。
+Agent 不需要先讀幾千個檔案。先從 `examples/evidence-map.example.json` 找到最接近的 case，只有摘要不足、證據互相衝突或需要重新驗證時，才往下追 raw evidence。
 
-## 六種高資訊量案例
+---
 
-### 1. Homepage performance
+## 目前保留的代表性案例
 
-- phenotype：mobile first-screen 約 13 秒
-- 高資訊量 evidence：只把 slider 換成 lightweight hero，LCP 13.10s → 3.16s
-- production：2.72s
-- 被忽略變因：首屏互動架構，而不是 hosting 本身
-- 決策：front-end structure first
+### 1. 首頁效能
 
-### 2. False multilingual completion
+- 問題：Mobile first-screen 約 13 秒
+- 關鍵 evidence：只把 Smart Slider 3 換成 lightweight hero，LCP 13.10s → 3.16s
+- Production：2.72s
+- 原本忽略：首屏 interaction / rendering structure
+- 決策：先改 front-end structure，不先把 hosting 當主因
 
-- phenotype：三語 release 被標成完成
-- 高資訊量 evidence：只有一語具備等價的 pillar DOM
-- 被忽略變因：URL/H1/hreflang 存在，不等於內容等價
-- 決策：逐語系 anonymous DOM gate
+→ [`performance/isolated-first-screen-test.md`](../performance/isolated-first-screen-test.md)
 
-### 3. Product truth drift
+### 2. 三語 False PASS
 
-- phenotype：正文已更新，但 FAQ / structured data 仍是舊值
-- 被忽略變因：同一產品 fact 存在多個 representation
-- 決策：owner-confirmed registry + consistency validator
+- 問題：multilingual release 被標成完成
+- 關鍵 evidence：只有一語具備完整 pillar DOM
+- 原本忽略：URL / H1 / hreflang 存在，不等於內容等價
+- 決策：逐語言 anonymous rendered DOM validation
 
-### 4. External search reality check
+→ [`incidents/multilingual-false-pass.md`](../incidents/multilingual-false-pass.md)
 
-- phenotype：本地與公開檢查看似健康，但 first-party search data 仍暴露 legacy URL 問題
-- 被忽略變因：local PASS 不等於 search engine 對歷史 URL graph 的理解相同
-- 決策：Search Console evidence 可以推翻本地假設
+### 3. 產品資料漂移
 
-### 5. Experiment vs production
+- 問題：正文已更新，FAQ / JSON-LD 還留著舊值
+- 原本忽略：同一 product fact 有多個 representation
+- 決策：owner-confirmed truth source + consistency validator
 
-- phenotype：scroll-reveal 測試存在
-- 高資訊量 evidence：test page 有 marker，但 production 沒有
-- 被忽略變因：專案裡「做過」不等於「上線過」
-- 決策：experiment state 與 production state 分開
+→ [`incidents/product-truth-drift.md`](../incidents/product-truth-drift.md)
 
-### 6. AIO experiment hypothesis
+### 4. GSC 外部驗證
 
-- status：**proposed, not executed**
-- Human hypothesis：只挑一個產品強化 visible FAQ / semantic clarity，不捏造 Offer / price / review / rating，再觀察後續差異
-- Agent objection：原 objective 偏向 production Rich Results zero-error
-- 被忽略變因：production validation 與 information-gain experiment 是不同 objective
-- 決策：不全站 rollout，保留成可量測假設
+- 問題：目前網站 QA 正常，但 Search Console 顯示 legacy URL 問題
+- 關鍵 evidence：32 個 redirected URLs 中，14 個有明確新頁面卻錯誤導向首頁
+- 決策：GSC 成為 engineering evidence，不只看成績
 
-## 原始 log 的角色
+→ [`search/search-console-redirect-review.md`](../search/search-console-redirect-review.md)
 
-Raw evidence 仍然保留四類功能：
+### 5. Experiment 與 Production 分開
 
-- **before evidence**：修改前狀態
-- **change / rollback record**：做了什麼，以及如何恢復
+- 問題：scroll-reveal test 存在，但容易被後續摘要誤認成已上線功能
+- 關鍵 evidence：test page 有 marker，production 沒有
+- 決策：沒有 explicit release evidence 就不能寫成 shipped
+
+→ [`experiments/scroll-reveal-state-check.md`](../experiments/scroll-reveal-state-check.md)
+
+### 6. 單一產品 AIO 假設
+
+- 狀態：尚未執行
+- 想法：只挑一個產品強化 visible FAQ / semantic clarity，其他產品盡量不變，再觀察 GSC / AI search visibility
+- Agent 當時偏向 production Rich Results zero-error
+- 關鍵差異：production safety 與 experimental information gain 是不同目標
+
+→ [`hypotheses/single-product-aio-experiment.md`](../hypotheses/single-product-aio-experiment.md)
+
+---
+
+## Raw Evidence 仍然有什麼用
+
+原始 log 仍然保留四種功能：
+
+- **before evidence**：修改前公開狀態
+- **change / rollback record**：做了什麼，以及怎麼恢復
 - **after validation**：公開匿名結果與 deterministic checks
 - **incident evidence**：新 evidence 推翻舊 PASS 時，保存根因與新規則
 
-公開版本刻意不包含客戶網址、內部 WordPress ID、私有路徑、未公開工程資訊或可識別客戶的 screenshots。
+公開版本刻意移除客戶網址、內部 WordPress ID、私有路徑、未公開工程資訊與可識別客戶的 screenshots。
+
+Log 在這個作品集裡不是為了證明「我做很多事」，而是為了讓後來的人或 Agent 知道：**當時為什麼做這個決定。**
