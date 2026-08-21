@@ -1,45 +1,59 @@
-# Hypothesis: Single-Product AIO Experiment
+# 假設：單一產品 AIO 實驗
 
-## Status
+## 狀態
 
-**Proposed / not executed / no evidence yet**
+**尚未執行 / 尚未驗證 / 目前沒有結果**
 
-This file is intentionally not written as a success story.
+這份文件刻意不寫成成功案例。
 
-## Human hypothesis
+## 問題
 
-Use one product as an experimental group. Improve its **visible** FAQ, HTML information structure and semantic clarity without inventing unsupported commercial fields such as Offer, price, review or rating.
+Production 階段的 Structured Data 決策偏向保守：不虛構 Offer、price、review、rating，也不使用無法由公開頁支持的 Product implementation。
 
-Keep comparable products unchanged, then observe later whether the experimental page differs in:
+但這並沒有完全回答另一個問題：
+
+> 如果只改一個產品，而不是全站一起改，能不能把它當成 experimental group，觀察 AIO / search visibility 是否出現差異？
+
+## 實驗假設
+
+選一個產品，在不虛構商業資料的前提下，強化：
+
+- visible FAQ
+- HTML information structure
+- semantic clarity
+
+其他可比較產品盡量保持不變，再觀察後續：
 
 - Google Search Console impressions / queries / indexing behavior
 - search-result presentation
-- AI/search summaries or citations, when observable
+- 可觀察到的 AI/search summaries 或 citations
 
-## Agent objection at the time
+## Agent 當時的反對理由
 
-The production objective emphasized zero Rich Results errors and semantic correctness. The Agent therefore preferred a consistent, conservative policy and did not expect unsupported Product schema additions to improve eligibility.
+原始 production objective 很重視：
 
-That objection is valid for production safety, but it does not fully answer the experimental question.
+- Rich Results 不可以出 error
+- machine-readable information 必須和 visible content 一致
+- 不應暗示 unsupported schema 會直接提升排名
 
-## Overlooked variable
+因此 Agent 偏向一致、保守的 production policy。
 
-**Production validation and information gain optimize different objectives.**
+這個判斷對 production safety 是合理的，但它沒有完全回答 experiment 的 information-gain question。
 
-A production system tries to minimize known errors. An experiment may deliberately isolate one controlled difference to learn whether it changes an external outcome.
+## 如果未來執行
 
-## Proposed boundary
+1. 只選一個產品作 treatment。
+2. 不虛構 Offer / price / inventory / review / rating。
+3. visible content 與 machine-readable content 保持一致。
+4. 實驗前先定義 observation window。
+5. 其他可比較產品盡量保持不變。
+6. 保存實驗前後 GSC / search / AI visibility evidence。
+7. 不因為看到 correlation 就直接宣稱 causal effect。
 
-If this experiment is ever executed:
+## 為什麼保留未完成假設
 
-1. change only one selected product;
-2. do not fabricate Offer / price / inventory / review / rating;
-3. preserve visible-content / machine-readable consistency;
-4. define the observation window before interpreting results;
-5. keep other comparable product pages unchanged when practical;
-6. record GSC / search / AI visibility evidence before and after;
-7. do not describe correlation as causal proof without stronger evidence.
+因為專案不是一路線性成功。
 
-## Why keep an unexecuted hypothesis in the repository?
+production validation 的目標是降低已知錯誤；experiment 的目標是控制差異並取得新的資訊。人與 Agent 對這兩種目標可以有不同判斷。
 
-Because Human-AI collaboration includes unresolved disagreement. Removing this record would make the project look artificially linear, as if every Agent recommendation was accepted and every idea became production work.
+如果未來沒有真正執行與取得 evidence，這一頁永遠只能叫「假設」，不能變成成果。
