@@ -1,144 +1,172 @@
-# 人機協作流程
+# 方法補充：AI Agent 如何參與專案
 
-## 不是把網站交給 AI，而是把工作切成不同責任
+AI Agent 在這個專案裡是一種工作方法，不是研究目標本身。
 
-這個專案不是一開始就有一套完整的 Agent governance 架構，而是在真實工作中逐步形成邊界。Agent 會做得很快，也會犯錯；人類負責決定哪些錯誤值得改成永久規則。
+我的目標是把 SEO 與 AIO 做起來，而 Agent 主要負責大量掃描、比較、產生程式與驗證；人負責定義問題、判斷資料真實性、決定是否採用建議，以及是否允許正式上線。
 
-### 人類負責
+## 工作分工
 
-- 業務需求與優先順序
-- 哪些資料可以公開
-- 哪些產品規格是真的
-- 是否允許上線
-- 遇到衝突時，哪個來源具有最高權威
-- 哪些假設值得做實驗，而不是直接全站套用
+### 人負責
+
+- 決定網站目前最值得解的問題
+- 決定產品資料哪一份具有最高權威
+- 判斷 Agent 的結論是否合理
+- 決定要直接修改、先做實驗，還是暫時不做
+- 決定是否允許 production release
+- 發現新的證據後，決定是否推翻舊結論
 
 ### AI Agent 負責
 
 - 掃描大量頁面與檔案
-- 比對三語內容
-- 產生候選文案、HTML、JSON-LD 與程式
-- 建立驗證腳本
-- 產生 before/after evidence
-- 整理專案狀態與報告
-- 根據 evidence map 載入與當前問題最相關的歷史 log
+- 比對繁中、簡中、英文內容
+- 產生候選 HTML、JSON-LD、文案與 scripts
+- 建立驗證程式
+- 整理 before / after evidence
+- 整理 change log、incident review 與 project state
+- 從大量歷史紀錄中找出與當前問題最相關的 log
 
 ### Deterministic tools 負責
 
 - HTTP status
 - canonical
 - hreflang
-- H1 / meta
+- H1 / metadata
 - schema parse
 - sitemap
 - internal links
 - image status
 - viewport / overflow
 - known-value consistency
-- Lighthouse / performance comparisons
+- Lighthouse / performance comparison
 
-## 我後來真正建立的邊界
+這些機械式檢查不需要每次都讓 LLM 重新推理，因此盡量交給 script 固定執行。
 
-最重要的規則不是「AI 不可以犯錯」，而是：
+---
 
-> AI 的結論必須能被 evidence 推翻。
+## 實際工作流程
 
-例如：
+```text
+發現問題
+  ↓
+確認 baseline 與資料來源
+  ↓
+Agent 協助掃描 / 比較 / 提出修改方案
+  ↓
+人判斷是否採用
+  ↓
+先保存 before evidence
+  ↓
+修改或建立隔離實驗
+  ↓
+清除 cache
+  ↓
+anonymous public validation
+  ↓
+執行 deterministic checks
+  ↓
+保存 after evidence
+  ↓
+PASS → release / 更新 project state
+FAIL → 修正 / rollback / incident review
+```
 
-- Agent 曾把單一語言的成功外推成三語完成。
-- Agent 曾更新產品正文，卻留下舊 FAQ / structured data。
-- 登入後看到的新版本，曾與匿名 cache 中的版本不同。
-- 一個已經 PASS 的 release，後來仍被更完整的 evidence 推翻。
+這套流程不是一開始就設計完成，而是在實際犯錯後慢慢長出來。
 
-因此我逐步把「完成」從自然語言判斷，改成可重跑的驗證條件。
+---
 
-## Evidence hierarchy
+## 為什麼不能讓 Agent 自己判斷「完成」
 
-大量 log 不應全部載入 context。它們被分成三層：
+專案裡真的發生過幾種錯誤：
+
+1. 繁中完成後，Agent 把局部成功外推成三語完成。
+2. 產品正文更新後，較舊的 FAQ / JSON-LD 還留著舊規格。
+3. WordPress 登入狀態已看到新版，但 anonymous visitor 仍拿到 Breeze cache 舊版。
+4. 某次 release 已經標成 PASS，後續更完整的檢查卻找到漏同步問題。
+
+因此「完成」不能只靠 Agent 的自然語言總結，而要看公開結果與驗證條件。
+
+---
+
+## Log 怎麼變成可用的專案記憶
+
+原專案累積了大量 Lighthouse runs、HTML、screenshots、JSON、stderr、before / after snapshots。這些原始資料都重要，但不代表 Agent 每次都要全部載入。
+
+我後來把它們分成三層：
 
 ```text
 Raw Evidence
 Lighthouse / HTML / screenshot / JSON / stderr
         ↓
 Representative Log
-哪個 evidence 真正改變了問題判斷
+哪一份紀錄真正改變了問題判斷？
         ↓
 Decision Rule
-因此修改了什麼流程、gate 或 release decision
+因此改了什麼實作、驗收或 release decision？
 ```
 
-一份 log 只有在它能改變下一步決策時，才算高資訊量 representative log。
-
-例如首頁效能問題：
+例如首頁效能：
 
 ```text
-Phenotype
-mobile first-screen ≈ 13 seconds
+觀察
+Mobile LCP 約 13 秒
 
-Candidate causes
-hosting / images / slider / JS / CSS / cache
+可能原因
+hosting / image / slider / JavaScript / CSS / cache
 
-High-information experiment
-只替換 first-screen slider
+關鍵實驗
+只替換第一屏 Smart Slider 3
 13.10s → 3.16s
 
-Interpretation
-hosting 不是主要解釋
-first-screen structure 才是主要變因
+判斷
+hosting 不是主要瓶頸
+第一屏載入結構才是高影響變因
 
-Decision
-移除重型 slider，重建 lightweight hero
+決策
+移除重型 slider，重做 lightweight hero
 
-Production result
+production
 2.72s
 ```
 
-這比「讀了很多 Lighthouse log」更重要，因為這份 isolated test 真正改變了 implementation path。
+真正值得之後的 Agent 優先讀取的，不是幾十份 Lighthouse 原始輸出，而是這份**改變了因果判斷與實作方向的隔離測試紀錄**。
 
-## Agent context loading
+---
 
-Agent 開始工作時使用這個順序：
+## Agent 載入歷史資料的順序
 
 ```text
-Question
+目前問題
   ↓
-Current Project State
+Project State
   ↓
-Problem Class
+問題類別
   ↓
 Evidence Map
   ↓
 Representative Log
   ↓
-Raw Evidence if disputed / incomplete
+必要時才往下讀 Raw Evidence
 ```
 
-這避免兩個問題：
+這樣做是為了避免兩件事：
 
-1. 把所有歷史檔案一次塞進 context，浪費 token 並增加混淆。
-2. 只靠 Agent 的對話記憶，幾週後把「做過實驗」誤記成「正式上線」。
+- 一次把所有歷史檔案塞進 context，造成 token 浪費與資訊混淆。
+- 幾週後只靠對話記憶，把「曾經測試」誤記成「已經正式上線」。
 
-## 一次修改的標準循環
+→ [Log 的整理方式](../logs/README.md)
 
-1. 讀取目前公開狀態、project state 與 relevant evidence map。
-2. 找出會改變判斷的 representative log，而不是先讀全部 raw files。
-3. Agent 提出最小修改範圍。
-4. 先保存 before evidence。
-5. 修改 WordPress / Code Snippets / Rank Math。
-6. 清除 cache。
-7. 以匿名公開請求驗證。
-8. 跑 deterministic gate。
-9. 保存 after evidence。
-10. PASS 才更新 project state；FAIL 就 rollback、修正或建立 incident review。
+---
 
-## Human hypothesis 不等於 Agent conclusion
+## 人與 Agent 不一定同意
 
-專案後期也出現真正的意見分歧。
+AIO / Structured Data 階段就出現過真正的意見差異。
 
-Agent 偏向守住 production Rich Results zero-error；Human 則提出另一個尚未執行的假設：是否可以只挑一個產品作為 experimental group，在不虛構 Offer / price / review / rating 的前提下，增加 visible FAQ 與 semantic clarity，觀察之後的搜尋與 AI 呈現是否不同。
+Agent 當時優先守住 production Rich Results 的正確性，不願意為了增加欄位去補不存在的 Offer、price、review、rating，這個判斷對 production safety 是合理的。
 
-這個想法目前仍是 **proposed / unvalidated**，不能寫成成果。
+但我另外提出一個還沒有執行的問題：
 
-它保留下來的原因，是提醒後續 Agent：
+> 能不能只選一個產品作為 experimental group，在不虛構商業資料的前提下，強化 visible FAQ 與 HTML semantic clarity，其他產品保持不變，再觀察後續 GSC 與 AI/search visibility？
 
-> production safety 與 information gain 有時是不同 objective function。
+這個想法目前仍是**未驗證假設**，不是成果。
+
+它保留下來的原因是：production 的目標是降低已知錯誤，實驗的目標則是取得新的資訊。兩者不一定會得到相同決策。
