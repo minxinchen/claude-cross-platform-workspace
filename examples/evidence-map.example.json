@@ -1,0 +1,98 @@
+{
+  "purpose": "Compress large work logs into decision-relevant evidence so an agent loads the few records that can actually change a conclusion.",
+  "loading_rule": [
+    "read project state first",
+    "identify the problem class",
+    "load the representative log for that class",
+    "follow down to raw evidence only when the summary is disputed or insufficient"
+  ],
+  "cases": [
+    {
+      "id": "homepage_performance",
+      "status": "validated",
+      "phenotype": "Mobile users waited roughly 13 seconds for the main first-screen content.",
+      "candidate_variables": ["hosting", "image weight", "slider plugin", "JavaScript", "CSS", "cache"],
+      "representative_log": "performance/isolated-first-screen-test.md",
+      "high_information_evidence": {
+        "experiment": "Replace only the first-screen slider with a static lightweight hero while keeping the rest of the page comparable.",
+        "baseline_mobile_lcp_seconds": 13.10,
+        "isolated_test_mobile_lcp_seconds": 3.16,
+        "production_mobile_lcp_seconds": 2.72
+      },
+      "overlooked_variable": "The first-screen interaction architecture, not hosting alone, dominated perceived loading time.",
+      "rejected_explanation": "Changing hosting was the primary solution.",
+      "decision": "Remove the heavy slider from the first screen, rebuild the visual as a lightweight hero, then restore visual rhythm without restoring the slider runtime.",
+      "decision_effect": "Changed the implementation path from infrastructure-first to front-end-structure-first.",
+      "confidence": "high"
+    },
+    {
+      "id": "false_multilingual_completion",
+      "status": "validated",
+      "phenotype": "A multilingual release was reported complete, but equivalent pillar content existed in only one language.",
+      "representative_log": "incidents/multilingual-false-pass.md",
+      "high_information_evidence": {
+        "finding": "URLs, H1, hreflang and articles existed across languages, but equivalent pillar DOM did not.",
+        "secondary_modifier": "Logged-in WordPress output could differ from anonymous cached output."
+      },
+      "overlooked_variable": "The release denominator checked language surfaces, but not equivalent rendered content per language.",
+      "wrong_inference": "Success in one language was generalized to the multilingual ecosystem.",
+      "decision": "Require per-language anonymous DOM validation and desktop/mobile checks before multilingual completion can pass.",
+      "decision_effect": "Created a stricter multilingual release gate.",
+      "confidence": "high"
+    },
+    {
+      "id": "product_truth_drift",
+      "status": "validated",
+      "phenotype": "The visible product body used updated engineering facts while older FAQ and machine-readable data still exposed obsolete values.",
+      "representative_log": "incidents/product-truth-drift.md",
+      "high_information_evidence": {
+        "finding": "One product fact had multiple representations: visible body, FAQ, structured data and language variants."
+      },
+      "overlooked_variable": "Updating the visible page did not invalidate every derived representation of the same fact.",
+      "decision": "Make the owner-confirmed registry authoritative and validate all derived representations together.",
+      "decision_effect": "Added a consistency validator and legacy-value ban checks.",
+      "confidence": "high"
+    },
+    {
+      "id": "external_search_reality_check",
+      "status": "validated",
+      "phenotype": "Local/public checks looked healthy, but first-party search-console data exposed legacy URL behavior that still needed correction.",
+      "representative_log": "search/search-console-redirect-review.md",
+      "high_information_evidence": {
+        "redirected_urls_reviewed": 32,
+        "incorrect_homepage_fallbacks": 14
+      },
+      "overlooked_variable": "A local PASS does not guarantee that the search engine sees the same historical URL graph.",
+      "decision": "Treat first-party search-console evidence as an external reality check and repair unambiguous legacy paths with relevant single-hop redirects.",
+      "decision_effect": "Search data became an input to engineering decisions, not only a reporting dashboard.",
+      "confidence": "high"
+    },
+    {
+      "id": "experiment_vs_production",
+      "status": "validated_boundary",
+      "phenotype": "A lightweight scroll-reveal interaction existed on an isolated test page but was not part of the production homepage at that checkpoint.",
+      "representative_log": "experiments/scroll-reveal-state-check.md",
+      "high_information_evidence": {
+        "test_page": "public but noindex",
+        "heavy_slider_present": false,
+        "production_test_marker_present": false
+      },
+      "overlooked_variable": "An experiment existing in the project can later be misremembered as a released feature.",
+      "decision": "Record experiment state separately from production state and require explicit release evidence before describing an experiment as shipped.",
+      "decision_effect": "Prevents later agents from converting project history into false production claims.",
+      "confidence": "high"
+    },
+    {
+      "id": "single_product_aio_hypothesis",
+      "status": "proposed_not_executed",
+      "phenotype": "The human operator and agent disagreed about whether a production-safe structured-data policy should prevent a limited AIO experiment.",
+      "representative_log": "hypotheses/single-product-aio-experiment.md",
+      "human_hypothesis": "Use one product as an experimental group: improve visible FAQ and semantic clarity without inventing Offer, price, review or rating fields, then compare later search/AI visibility against unchanged products.",
+      "agent_objection": "The original objective emphasized zero Rich Results errors and the agent did not expect unsupported schema additions to improve eligibility.",
+      "overlooked_variable": "Production validation and information-gain experiments optimize different objectives.",
+      "decision": "Do not roll the idea out site-wide. Preserve it as an isolated, measurable hypothesis.",
+      "evidence": "not yet collected",
+      "confidence": "unvalidated"
+    }
+  ]
+}
