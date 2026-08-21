@@ -1,239 +1,177 @@
 # B2B 工業網站 SEO × AIO 優化案例
 
-> 一個真實、去識別化的 B2B 工業網站專案。我要解決的問題很直接：**把網站的 SEO 與 AIO 基礎做起來，讓搜尋引擎、AI 系統與潛在客戶更容易理解網站與產品資訊。**
+> 真實、去識別化的 B2B 工業網站專案。目標是把 SEO 與 AIO 基礎做起來，讓搜尋引擎、AI 系統與潛在客戶更容易理解網站與產品資訊。
 
 ## 專案目標
 
-這個專案有兩個主要目標：
+我把問題拆成兩個方向：
 
-1. **SEO**：改善網站效能、技術結構、三語頁面、索引與舊網址問題，讓 Google 更容易正確抓取、理解與導向內容。
-2. **AIO**：整理頁面語意、產品資料與機器可讀資訊，降低搜尋引擎與 AI 系統對「這頁是什麼、產品是什麼、哪份資料才是真的」的猜測空間。
+1. **SEO**：改善效能、技術結構、三語頁面、索引與舊網址問題，讓 Google 更容易正確抓取、理解與導向內容。
+2. **AIO**：整理頁面語意、產品資料與機器可讀資訊，降低搜尋引擎與 AI 對「這頁是什麼、產品是什麼、哪份資料才是真的」的猜測空間。
 
-AI Agent 是方法之一，不是專案主角。整個專案的核心流程是：
+AI Agent 是方法之一，不是專案主角。
 
-```text
-發現問題
-  ↓
-提出可能原因
-  ↓
-找能區分原因的證據
-  ↓
-修改或做隔離實驗
-  ↓
-公開環境驗證
-  ↓
-觀察 Google 與搜尋結果
-  ↓
-再調整方法
+## 代表結果
+
+| 結果 | 前期 / 修改前 | 後期 / 修改後 |
+|---|---:|---:|
+| Mobile LCP | 13.10s | **2.72s** |
+| Lighthouse Mobile Performance | 約 73 | **96** |
+| GSC 日均曝光 | 約 272.9 / 日 | **約 417.3 / 日** |
+| GSC 日均點擊 | 約 5.1 / 日 | **約 6.7 / 日** |
+| AI 摘要日均曝光 | 約 75.1 / 日 | **約 110.3 / 日** |
+
+GSC 後期區間比前期短，因此另外用日均值做粗略標準化。這些搜尋數據屬於**修改後觀察到的外部趨勢**，不是 controlled experiment，不能把成長直接歸因到單一 SEO 或 AIO 修改。
+
+→ [完整結果與限制](docs/results.md)
+
+## 我的角色
+
+我負責把業主資料、公開網站、Google 資料與 AI Agent 的輸出串成一個可執行的工作流程，主要工作包括：
+
+- 找出優先問題並定義成功條件
+- 判斷產品資料的權威來源
+- 設計隔離測試與驗證方法
+- 接受、拒絕或要求重新驗證 Agent 建議
+- 決定修改是否能正式上線
+- 用 Lighthouse、GSC、Rich Results 與公開頁結果檢查修改後狀態
+
+## 材料與方法
+
+資料來源包含 WordPress 公開頁面、三語內容、產品工程規格、HTML / PDF / images、Google Search Console、Google Rich Results Test、Lighthouse、公開匿名頁面與工作 logs。
+
+```mermaid
+flowchart LR
+    A[建立 baseline] --> B[找高影響問題]
+    B --> C[提出可能原因]
+    C --> D[修改或隔離實驗]
+    D --> E[公開環境驗證]
+    E --> F[Google / GSC 外部驗證]
+    F --> G[重新調整方法]
 ```
 
----
+→ [材料與方法](docs/methods.md)
 
-## 結果摘要
+## 問題 1：手機首頁約 13 秒
 
-### 1. 首頁效能
+首頁使用 Smart Slider 3。最初可能原因包含 hosting、圖片、WordPress、JavaScript / CSS、cache 與 slider 本身。
 
-| 指標 | 修改前 | 隔離測試 | 正式上線 |
-|---|---:|---:|---:|
-| Mobile LCP | 13.10s | 3.16s | **2.72s** |
-| Lighthouse Mobile Performance | 約 73 | 約 93 | **96** |
+我沒有直接改正式首頁，而是建立隔離測試頁，只替換第一屏 Smart Slider 3，其餘內容盡量保持可比較。
 
-首頁原本使用 Smart Slider 3。隔離測試只替換首屏輪播，就讓 Mobile LCP 從 13.10s 降到 3.16s，因此主要問題不在主機，而在**首屏載入與渲染結構**。正式頁重新設計後，Mobile LCP 約 2.72s。
+```mermaid
+flowchart LR
+    A[正式首頁\n13.10s] --> B[只替換首屏 slider]
+    B --> C[隔離測試\n3.16s]
+    C --> D[確認主要瓶頸在首屏結構]
+    D --> E[正式重做 lightweight hero]
+    E --> F[正式上線\n2.72s]
+```
+
+這份測試改變了決策方向。主要問題不是主機，而是第一屏的載入與渲染結構。正式頁保留背景、Logo、文字、CTA 與 responsive layout，但移除重型 slider runtime。
 
 → [首頁效能案例](performance/isolated-first-screen-test.md)
 
-### 2. Google Search Console 整體搜尋結果
+## 問題 2：有三語 URL，不代表三語內容真的完成
 
-比較兩個 GSC 區間：
+早期驗收已檢查 URL、H1、hreflang、schema 與部分 visual case，但後來發現只有繁中存在完整 pillar content，英文與簡中沒有等價 rendered DOM。
 
-- 前期：2026/5/1–2026/6/28，共 59 天
-- 後期：2026/6/30–2026/8/20，共 52 天
+問題不是「少翻一頁」，而是**驗收指標把頁面存在誤當成內容等價**。
 
-| 指標 | 前期 | 後期 | 總量變化 | 依天數換算 |
-|---|---:|---:|---:|---:|
-| 點擊 | 299 | 346 | **+15.7%** | 約 **+31.3% / 日** |
-| 曝光 | 1.61 萬 | 2.17 萬 | **+34.8%** | 約 **+52.9% / 日** |
-| CTR | 1.9% | 1.6% | -0.3 個百分點 | — |
-| 平均排名 | 6.3 | 8.8 | 下降 2.5 位 | — |
+解法改成逐語言檢查 anonymous rendered DOM、H1、導航、產品連結、FAQ、CTA 與 desktop/mobile overflow，並在 cache purge 後重新驗證。
 
-曝光與點擊增加，但 CTR 與平均排名沒有同步改善。這表示**搜尋可見度擴張得比點擊效率更快**。
+→ [三語內容漏同步](incidents/multilingual-false-pass.md)
 
-目前只有總覽資料，還不能判斷是原有搜尋詞排名下滑，還是新搜尋詞、新頁面開始取得較低順位的曝光，因此下一步需要拆成搜尋詞與頁面層級分析。
+## 問題 3：產品正文更新了，FAQ / JSON-LD 還是舊資料
 
-### 3. AI 摘要曝光
+產品工程規格更新後，visible main content 已是新值，但較早建立的 FAQ / JSON-LD 還保留舊值。
 
-| 指標 | 前期 | 後期 | 變化 |
-|---|---:|---:|---:|
-| AI 摘要曝光 | 4,428 | 5,736 | **+29.5%** |
-| 日均曝光 | 約 75.1 | 約 110.3 | **+47.0%** |
+這代表同一個產品事實同時存在多個版本：正文、FAQ、structured data、knowledge JSON 與三語頁面。只改一處，其他衍生資料不會自動更新。
 
-AI 摘要曝光占整體 GSC 曝光約由 27.5% 變成 26.4%，大致維持同一量級。
+解法是建立 owner-confirmed truth source，並將衍生內容一起納入 consistency verification。
 
-因此目前能支持的結論是：
+→ [產品資料一致性](incidents/product-truth-drift.md)
 
-> **AI 摘要曝光隨整體搜尋可見度一起增加。**
+## 問題 4：網站自己看起來正常，不代表 Google 看到的舊網址也正常
 
-目前不能宣稱 AIO 已讓 AI 摘要占比顯著提高，也不能把這個變化直接歸因到某一個 H1、FAQ、Schema 或其他單一修改。
+GSC Page Indexing 顯示 32 個 redirected URLs。分類後，大部分屬於合理歷史行為，但其中 **14 個 legacy paths** 明明有清楚的新頁面，卻錯誤導向語言首頁。
 
-→ [結果與限制](docs/results.md)
+我把 GSC 從成果報表改成外部驗證資料，對 14 個有明確對應頁的舊網址建立 relevant single-hop redirects。
 
----
+→ [GSC 舊網址修正](search/search-console-redirect-review.md)
 
-## 材料與資料
+## 問題 5：Structured Data 不是加越多越好
 
-這個專案使用的不是單一資料集，而是多種真實網站資料來源。
+專案曾嘗試 Product / ProductModel，但 Google Rich Results 的實際驗證與這個 B2B quote-only 網站的公開資料條件不相容。網站沒有 verified Offer、price、inventory、review、rating。
 
-### 網站資料
+我的處理方式不是補假資料，而是移除不適合正式環境的 Product / ProductModel rich-result implementation，保留能由公開頁支持的 Article、Breadcrumb、Organization 與 visible product content。
 
-- WordPress 公開頁面
-- 產品頁、技術文章、分類頁、FAQ
-- 繁中 / 簡中 / 英文三語內容
-- HTML、圖片、PDF、sitemap、站內連結
-- canonical、hreflang、metadata、redirects
+AIO 在這裡的原則很簡單：**讓機器少猜，但不能讓機器讀到人類頁面上不存在的事實。**
 
-### 產品與業務資料
-
-- 業主確認的產品工程規格
-- 既有產品內容與歷史資料
-- 公開產品頁與衍生 FAQ / structured data
-
-### 搜尋與效能資料
-
-- Google Search Console
-- Google Rich Results Test
-- Lighthouse
-- 匿名公開 HTML
-- desktop / mobile screenshots
-- 修改前後驗證紀錄
-
-### 工作紀錄
-
-- Agent logs
-- change logs
-- rollback records
-- validation JSON
-- regression checks
-
----
-
-## 方法
-
-### 1. 技術 SEO 稽核
-
-檢查 H1、title、description、canonical、hreflang、sitemap、redirects、站內連結、圖片與公開 HTTP 狀態。
-
-### 2. 內容與語意結構
-
-整理核心頁主題、產品 HTML 資訊、FAQ、pillar content、三語內容與頁面之間的站內連結，避免重要資訊只存在圖片或 PDF。
-
-### 3. AIO / Structured Data
-
-研究 Schema.org / JSON-LD、Product、Article、Organization、FAQ 等機器可讀資訊，並以 Google 實際驗證結果決定哪些資料適合正式環境。
-
-### 4. 效能實驗
-
-使用 Lighthouse 建立基準，再用隔離頁面控制主要變因，確認瓶頸後才修改正式網站。
-
-### 5. AI Agent 協作
-
-AI Agent 用來處理大量頁面掃描、三語比較、HTML / script 產生、驗證與 log 整理；人負責定義目標、判斷資料權威性、接受或拒絕 Agent 建議，以及決定是否正式上線。
-
-→ [AI Agent 在專案中的角色](docs/human-ai-workflow.md)
-
----
-
-## 遇到的問題，以及我怎麼解
-
-### 問題 1：手機首頁約 13 秒
-
-**觀察**：Mobile LCP 約 13.10s。
-
-**可能原因**：主機、圖片、WordPress、Smart Slider 3、JavaScript / CSS、cache。
-
-**做法**：建立隔離測試頁，只把 Smart Slider 3 換成輕量靜態 hero，其餘頁面盡量保持可比較。
-
-**結果**：13.10s → 3.16s。
-
-**判斷**：主要瓶頸不是主機，而是首屏互動與載入結構。
-
-**正式解法**：保留背景、Logo、文字、CTA 與 responsive layout，但移除重型輪播執行內容。正式上線後 Mobile LCP 約 2.72s。
-
-### 問題 2：有三語 URL，不代表三語內容真的完成
-
-早期上線驗收已經檢查 URL、H1、hreflang、schema 與部分視覺案例，但後來發現只有繁中具有完整 pillar content，英文與簡中並沒有等價的實際渲染 DOM。
-
-**真正問題**：驗收指標把「頁面存在」錯當成「內容等價」。
-
-**解法**：改成逐語言驗證匿名公開 DOM、H1、導航、產品連結、FAQ、CTA 與 desktop/mobile overflow，並在清除 cache 後重新檢查。
-
-→ [三語錯誤驗收案例](incidents/multilingual-false-pass.md)
-
-### 問題 3：產品正文更新了，FAQ / JSON-LD 還是舊資料
-
-產品工程規格更新後，主內容已是新值，但較早建立的 FAQ / JSON-LD 還保留舊值。
-
-**真正問題**：同一個產品事實有多個呈現位置，只更新其中一份不代表其他衍生資料也同步更新。
-
-**解法**：建立業主確認資料為最高真實來源，讓產品頁、FAQ、structured data、三語頁面與 knowledge JSON 一起做一致性驗證。
-
-→ [產品資料漂移案例](incidents/product-truth-drift.md)
-
-### 問題 4：網站自己測試正常，不代表 Google 看到的歷史 URL 也正常
-
-GSC Page Indexing 顯示 32 個 redirected URLs。分類後發現大部分合理，但其中 14 個舊網址明明有清楚的新頁面，卻錯誤導向語言首頁。
-
-**解法**：把 GSC 當成外部驗證資料，將 14 個有明確對應頁的舊網址修成正確頁面的單次 redirect。
-
-→ [GSC redirect 案例](search/search-console-redirect-review.md)
-
-### 問題 5：Structured Data 不是加越多越好
-
-曾嘗試 Product / ProductModel，但 Google 的 Rich Results 實際驗證與網站的 B2B 詢價型資料條件不相容。公開頁沒有已驗證的 Offer、price、inventory、review、rating。
-
-**解法**：不捏造欄位。移除不適合正式環境的 Product / ProductModel rich-result implementation，保留可由公開頁支持的 Article、Breadcrumb、Organization 與產品可見內容。
-
-→ [AIO 與 Structured Data 方法](docs/aio-governance.md)
-
----
+→ [AIO 與 Structured Data](docs/aio-governance.md)
 
 ## 全站技術驗收
 
-代表性的上線驗收結果包含：
+代表性的 release evidence：
 
 - **122 / 122** sitemap URLs 通過公開檢查
 - **116 / 116** desktop/mobile 三語視覺案例通過
-- **170** 個站內連結檢查無錯誤
+- **170** 個站內連結無錯誤
 - **92** 張圖片無 broken resource
-- **14** 個錯誤舊網址 redirect 已修正
+- **14** 個錯誤 legacy redirects 已修正
 
-這些數字代表技術完整度與上線驗收，不等於搜尋排名或 AI 引用的因果證明。
+這些結果代表上線完整度與技術準備度，不等於搜尋排名或 AI 引用的因果證明。
 
----
+## 搜尋結果怎麼解讀
 
-## 限制與尚未回答的問題
+GSC 整體結果從前期到後期：
 
-1. GSC 前後期不是控制實驗，期間內同時有多項 SEO / AIO / performance 修改，因此不能把曝光成長歸因到單一措施。
-2. CTR 1.9% → 1.6%，平均排名 6.3 → 8.8，需要搜尋詞與頁面層級資料才能判斷是既有排名下降，還是新增低順位曝光拉低平均值。
-3. AI 摘要曝光增加，但占整體曝光比例大致持平，因此不能宣稱 AIO 已提高 AI 摘要占比。
-4. 「單一產品做 AIO 實驗組」目前仍是未執行假設，沒有結果。
-5. 搜尋引擎索引、排名與 AI 摘要引用都具有時間延遲，技術修正完成不代表外部結果會即時更新。
+- 點擊：299 → 346
+- 曝光：16,100 → 21,700
+- CTR：1.9% → 1.6%
+- 平均排名：6.3 → 8.8
 
----
+曝光與點擊增加，但 CTR 與平均排名沒有同步改善。可能是原有搜尋詞排名下降，也可能是網站開始取得更多低順位的新搜尋詞曝光。只有總覽資料還無法判斷，需要進一步做搜尋詞與頁面層級分析。
+
+AI 摘要曝光則從 4,428 → 5,736，日均約 +47.0%，但占整體 GSC 曝光比例大致持平，因此目前只能說 AI 摘要曝光隨整體搜尋可見度一起增加，不能宣稱 AIO 已提高 AI 摘要占比。
+
+→ [結果與限制](docs/results.md)
+
+## AI Agent 在這個專案中的位置
+
+AI Agent 主要處理大量掃描、三語比較、HTML / script 候選版本、驗證腳本與 log 整理。人負責目標、資料真實性、實驗設計、是否上線與結果解讀。
+
+專案中也發生過 Agent 判斷錯誤，例如把單一語言成功外推成三語完成，或正文已更新但 FAQ / JSON-LD 留下舊資料。這些錯誤後來被轉成新的驗證規則。
+
+→ [Human-AI workflow](docs/human-ai-workflow.md)  
+→ [代表性問題紀錄](docs/incidents.md)
+
+## 限制與下一步
+
+目前不能過度解讀的地方包括：
+
+- GSC 前後期不是 controlled experiment，同期有多項修改
+- CTR 與平均排名需要搜尋詞 / 頁面層級資料才能解釋
+- AI 摘要曝光增加不代表 AIO 修改已被證明具有因果效果
+- 單一產品 AIO experiment 仍是未執行假設
+- 搜尋引擎索引、排名與 AI 摘要都有時間延遲
+
+下一輪重點不是再增加 checklist，而是拆 GSC 的搜尋詞與頁面資料，判斷新增曝光來自品牌詞、產品詞、技術長尾詞，還是新三語頁面。
 
 ## 技術棧
 
-**WordPress · Rank Math · Polylang · Breeze · Smart Slider 3 · Google Search Console · Google Rich Results Test · Schema.org / JSON-LD · Python · Node.js · Playwright · Lighthouse · GitHub · Google Drive · AI Agents / LLM-assisted workflow**
+`WordPress · Rank Math · Polylang · Breeze · Smart Slider 3 · Google Search Console · Google Rich Results Test · Schema.org / JSON-LD · Python · Node.js · Playwright · Lighthouse · GitHub · Google Drive · AI Agents`
 
----
-
-## Repository Map
+## Repository map
 
 ```text
 .
+├── README.md
+├── TODO.md
 ├── docs/
+│   ├── methods.md
 │   ├── results.md
-│   ├── human-ai-workflow.md
 │   ├── aio-governance.md
+│   ├── human-ai-workflow.md
 │   └── incidents.md
 ├── performance/
 │   └── isolated-first-screen-test.md
@@ -243,26 +181,10 @@ GSC Page Indexing 顯示 32 個 redirected URLs。分類後發現大部分合理
 ├── search/
 │   └── search-console-redirect-review.md
 ├── experiments/
-│   └── scroll-reveal-state-check.md
 ├── hypotheses/
-│   └── single-product-aio-experiment.md
 ├── examples/
-│   ├── evidence-map.example.json
-│   ├── product-truth-registry.example.json
-│   ├── project-state.example.json
-│   └── release-gate.example.json
 ├── logs/
-│   └── README.md
 └── scripts/
-    └── verify-release-gate.example.js
 ```
 
-## 結論
-
-這個案例不是「用 AI 做 SEO」的展示。
-
-它是一個完整的網站優化專案：
-
-> **我想把 SEO 與 AIO 做起來，因此先建立基準，用網站資料、GSC、Lighthouse、產品資料與 Agent logs 找問題；遇到錯誤時重新定義驗收方式，再用公開結果與 Google 的外部資料驗證。**
-
-AI Agent 提供速度與規模，人負責問題定義、資料真實性、實驗判斷與最後決策。
+公開版本已移除或泛化客戶身分、私人商業內容、credentials、內部路徑、未公開工程資訊與可識別的原始工作資料。
